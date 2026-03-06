@@ -1,556 +1,1170 @@
 <!doctype html>
 <html lang="uk">
-<head>
-  <meta charset="utf-8" />
-  <title id="title">SciGenTEM Visualizer</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" type="image/x-icon" href="./img_web/favicon.ico" />
-  <style>
+  <head>
+    <meta charset="utf-8" />
+    <title id="title">SciGenTEM Visualizer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="./img_web/favicon.ico" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        color: #333;
+        line-height: 1.6;
+        margin: 0;
+        padding: 0;
+      }
 
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            color: #333;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      header {
+        background-color: #4caf50;
+        color: white;
+        padding: 20px 0;
+        text-align: center;
+      }
+
+      .links_header_block {
+        display: flex;
+        justify-content: center;
+      }
+
+      .header_link {
+        margin: 5px;
+        font-size: 15px;
+        color: white;
+        text-decoration: none;
+      }
+
+      .top_container {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .main-block {
+        background-color: #ffffff;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .instructions {
+        background-color: #e7f5fe;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .download-block {
+        background-color: #e7ffe7;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .links-block {
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .model-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+      }
+
+      .download_grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 20px;
+      }
+
+      .model-item {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: transform 0.2s;
+      }
+
+      .model-item:hover {
+        transform: scale(1.05);
+      }
+
+      .model-item a {
+        height: 100%;
+        text-decoration: none;
+        color: #333;
+        display: block;
+      }
+
+      .model-item p {
+        margin-top: 10px;
+        font-weight: bold;
+      }
+
+      .lang_link {
+        margin: 5px;
+        font-size: 15px;
+        color: white;
+        text-decoration: none;
+      }
+
+      .lang_container {
+        padding: 0px 10px 0px 0px;
+        width: auto;
+        display: flex;
+        justify-content: end;
+      }
+
+      .black_link {
+        color: black;
+      }
+
+      .download_grid p {
+        margin: 5px;
+      }
+
+      .download_grid .model-item {
+        padding: 0px;
+      }
+
+      .center_canvas_wrap {
+        display: flex;
+        justify-content: center;
+      }
+      .canvas_tools {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        margin-top: 10px;
+        align-items: end;
+      }
+      .canvas_tools .btn {
+        padding: 10px 12px;
+        background: #4caf50;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      .canvas_tools .btn:hover {
+        filter: brightness(0.95);
+      }
+      .canvas_tools label {
+        font-size: 12px;
+        display: block;
+        margin-bottom: 6px;
+      }
+      .canvas_tools input {
+        width: 100%;
+        padding: 6px 8px;
+        box-sizing: border-box;
+      }
+
+      .canvas_meta {
+        margin-top: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .small_links {
+        margin-top: 8px;
+        font-size: 13px;
+      }
+
+      .small_links a {
+        text-decoration: underline;
+      }
+
+      .tem_grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+
+      .tem_full {
+        grid-column: 1 / -1;
+      }
+
+      .checks_inline {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .checks_inline label {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        font-size: 13px;
+      }
+
+      .range_row {
+        margin-bottom: 10px;
+      }
+
+      .range_row label {
+        font-size: 12px;
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .range_row input[type="range"] {
+        width: 100%;
+      }
+
+      .file_row {
+        margin-top: 8px;
+      }
+
+      .file_button {
+        display: inline-block;
+        padding: 10px 0px;
+        background: #e7ffe7;
+        border: 1px solid #cfe8cf;
+        border-radius: 6px;
+        cursor: pointer;
+        width: 100%;
+        text-align: center;
+      }
+
+      .file_button:hover {
+        filter: brightness(0.98);
+      }
+
+      input[type="file"] {
+        display: none;
+      }
+
+      .viewpad {
+        display: grid;
+        grid-template-columns: 44px 44px 44px;
+        grid-template-rows: 44px 44px 44px;
+        gap: 8px;
+        margin-top: 6px;
+      }
+
+      .viewbtn {
+        width: 44px;
+        height: 44px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #f9f9f9;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      .viewbtn:active {
+        transform: translateY(1px);
+      }
+
+      .help_text p,
+      .help_text li,
+      .help_text dd {
+        font-size: 16px;
+      }
+
+      .help_text dt {
+        font-size: 16px;
+      }
+
+      .muted {
+        color: #666;
+        font-size: 13px;
+      }
+
+      .mode_desc {
+        color: #666;
+        font-size: 13px;
+        margin-top: 4px;
+      }
+
+      #sel-mode {
+        width: 100%;
+        padding: 6px 8px;
+        box-sizing: border-box;
+      }
+
+      .ui_disabled {
+        opacity: 0.5;
+      }
+
+      .ui_hidden {
+        display: none !important;
+      }
+
+      /* --- Wave 1 (UI): 2-column desktop layout --- */
+      .tem_app {
+        display: grid;
+        grid-template-columns: minmax(340px, 480px) 1fr;
+        grid-template-areas: "controls view";
+        gap: 20px;
+        align-items: start;
+      }
+
+      .tem_controls {
+        grid-area: controls;
+        overflow-y: auto;
+        max-height: calc(100vh - 210px);
+        padding-right: 10px;
+      }
+
+      .tem_view {
+        grid-area: view;
+        min-width: 0;
+      }
+
+      .tem_view_sticky {
+        position: sticky;
+        top: 16px;
+      }
+
+      #canvas {
+        width: 100%;
+        height: auto;
+        max-height: calc(100vh - 300px);
+      }
+
+      .header_help_row {
+        margin-top: 8px;
+      }
+
+      .header_help_link {
+        color: white;
+        text-decoration: underline;
+        font-size: 1.7em;
+        font-weight: 600;
+      }
+
+      .smiles_error {
+        color: #b00020;
+        margin-top: 6px;
+        font-weight: 700;
+      }
+
+      .error {
+        color: #b00020;
+        margin-top: 6px;
+        font-weight: 600;
+      }
+
+      .tiles_grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        margin-top: 8px;
+      }
+
+      .tiles_grid label {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .tiles_grid input {
+        width: 100%;
+        padding: 6px 8px;
+        box-sizing: border-box;
+      }
+
+      #tb-smiles {
+        width: 100%;
+        padding: 6px 8px;
+        box-sizing: border-box;
+      }
+
+      /* --- Element overrides table --- */
+      #elem-override-table table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      #elem-override-table th,
+      #elem-override-table td {
+        border: 1px solid #ddd;
+        padding: 6px 8px;
+        font-size: 13px;
+      }
+      #elem-override-table th {
+        background: #f9f9f9;
+        text-align: left;
+      }
+      #elem-override-table input[type="number"] {
+        width: 100%;
+        padding: 4px 6px;
+        box-sizing: border-box;
+      }
+
+      #elem-override-table td.preview_cell {
+        width: 116px;
+      }
+
+      #elem-override-table canvas.elem_preview_canvas {
+        width: 96px;
+        height: 96px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        display: block;
+        background: white;
+      }
+
+      @media (max-width: 900px) {
+        .header_help_link {
+          color: white;
+          text-decoration: underline;
+          font-size: 17px;
+          font-weight: 600;
         }
 
-        .container {
-            max-width: 1080px;
-            margin: 0 auto;
-            padding: 20px;
+        .qr {
+          width: 50px;
         }
 
-        header {
-            background-color: #4CAF50;
-            color: white;
-            padding: 20px 0;
-            text-align: center;
+        .qr img {
+          display: none;
+        }
+
+        h1 {
+          font-size: 20px;
         }
 
         .links_header_block {
-            display: flex;
-            justify-content: center;
-        }
-
-        .header_link {
-            margin: 5px;
-            font-size: 15px;
-            color: white;
-            text-decoration: none;
-        }
-
-        .top_container {
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .main-block {
-            background-color: #ffffff;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .instructions {
-            background-color: #e7f5fe;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .download-block {
-            background-color: #e7ffe7;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .links-block {
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .model-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-        }
-
-        .download_grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(2, 1fr);
-            gap: 20px;
-        }
-
-        .model-item {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            transition: transform 0.2s;
-        }
-
-        .model-item:hover {
-            transform: scale(1.05);
-        }
-
-        .model-item a {
-            height: 100%;
-            text-decoration: none;
-            color: #333;
-            display: block;
-        }
-
-        .model-item p {
-            margin-top: 10px;
-            font-weight: bold;
+          display: none;
         }
 
         .lang_link {
-            margin: 5px;
-            font-size: 15px;
-            color: white;
-            text-decoration: none;
-        } 
-
-        .lang_container {
-            padding: 0px 10px 0px 0px;
-            width: auto;
-            display: flex;
-            justify-content: end;
-        } 
-
-        .black_link {
-            color: black;
+          font-size: 17px;
         }
 
-        .download_grid p {
-            margin: 5px;
+        .container {
+          padding: 10px;
         }
 
-        .download_grid .model-item {
-            padding: 0px;
+        header {
+          font-size: 1em;
         }
 
-
-
-        @media (max-width: 900px) {
-
-            .qr {
-                width: 50px;
-            }
-
-            .qr img {
-                display: none;
-            }
-
-            h1 {
-                font-size: 20px;
-            }
-
-            .links_header_block {
-                display: none;
-            }
-
-            .lang_link {
-                font-size: 17px;
-            } 
-
-            .container {
-                padding: 10px;
-            }
-
-            header {
-                font-size: 1em;
-            }
-
-            h2 {
-                font-size: 1.5em;
-            }
-
-            .model-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .download_grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .header_link {
-            margin: 5px;
-            font-size: 10px;
-            color: white;
-            text-decoration: none;
+        h2 {
+          font-size: 1.5em;
         }
+
+        .model-grid {
+          grid-template-columns: repeat(2, 1fr);
         }
-    
-/* --- SciGenTEM additions (layout only; keep SciGen3D colors/sizes) --- */
-.center_canvas_wrap { display:flex; justify-content:center; }
-.canvas_tools { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; align-items:end; }
-.canvas_tools .btn { padding: 10px 12px; background: #4CAF50; color:#fff; border:none; border-radius:6px; cursor:pointer; }
-.canvas_tools .btn:hover { filter: brightness(0.95); }
-.canvas_tools label { font-size: 12px; display:block; margin-bottom:6px; }
-.canvas_tools input { width:100%; padding: 6px 8px; box-sizing:border-box; }
 
-.canvas_meta { margin-top: 8px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
-.small_links { margin-top: 8px; font-size: 13px; }
-.small_links a { text-decoration: underline; }
+        .download_grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
 
-.tem_grid { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.tem_full { grid-column: 1 / -1; }
-.checks_inline { display:grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.checks_inline label { display:flex; gap:8px; align-items:center; font-size: 13px; }
+        .header_link {
+          margin: 5px;
+          font-size: 10px;
+          color: white;
+          text-decoration: none;
+        }
 
-.range_row { margin-bottom: 10px; }
-.range_row label { font-size: 12px; display:block; margin-bottom:6px; }
-.range_row input[type="range"] { width:100%; }
+        .tem_app {
+          grid-template-columns: 1fr;
+          grid-template-areas: "view" "controls";
+        }
 
-.file_row { margin-top: 8px; }
-.file_button { display:inline-block; padding: 10px 0px; background:#e7ffe7; border:1px solid #cfe8cf; border-radius:6px; cursor:pointer; width:100%; text-align:center; }
-.file_button:hover { filter: brightness(0.98); }
-input[type="file"] { display:none; }
+        .tem_controls {
+          overflow: visible;
+          max-height: none;
+          padding-right: 0;
+        }
 
-.viewpad { display:grid; grid-template-columns: 44px 44px 44px; grid-template-rows: 44px 44px 44px; gap: 8px; margin-top: 6px; }
-.viewbtn { width:44px; height:44px; border:1px solid #ccc; border-radius:8px; background:#f9f9f9; cursor:pointer; font-size:16px; }
-.viewbtn:active { transform: translateY(1px); }
+        .tem_view_sticky {
+          position: static;
+          top: auto;
+        }
 
-.help_text p, .help_text li, .help_text dd { font-size: 16px; }
-.help_text dt { font-size: 16px; }
+        #canvas {
+          max-height: none;
+        }
 
-.muted { color:#666; font-size: 13px; }
-.mode_desc { color:#666; font-size: 13px; margin-top: 4px; }
-#sel-mode { width: 100%; padding: 6px 8px; box-sizing: border-box; }
-.ui_disabled { opacity: 0.5; }
-.ui_hidden { display: none !important; }
-
-
-@media (max-width: 900px) {
-  .canvas_tools { grid-template-columns: 1fr; }
-  .tem_grid { grid-template-columns: 1fr; }
-}
-</style>
-
-  <script src="./rdkit/RDKit_minimal.js"></script>
-  <script>
-document.addEventListener("DOMContentLoaded", function () {
-  function getQueryParam(param) {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get(param);
-  }
-
-  let currentLang = getQueryParam("lang") || localStorage.getItem("lang") || "ua";
-
-  function updateURL(lang) {
-    const urlParams = new URLSearchParams(window.location.search);
-    urlParams.set("lang", lang);
-    window.history.replaceState({}, "", `${window.location.pathname}?${urlParams.toString()}`);
-  }
-
-  function updateLinksLanguage(lang) {
-    const links = document.querySelectorAll("a[href]");
-    links.forEach(link => {
-      const href = link.getAttribute("href") || "";
-      if (href.includes("lang=")) {
-        link.setAttribute("href", href.replace(/lang=(ua|en)/, `lang=${lang}`));
+        .canvas_tools {
+          grid-template-columns: 1fr;
+        }
+        .tem_grid {
+          grid-template-columns: 1fr;
+        }
       }
-    });
-  }
+    </style>
 
-  function applyTranslations(translations, lang) {
-    const dict = translations && translations[lang];
-    if (!dict) return;
+    <script src="./rdkit/RDKit_minimal.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        function getQueryParam(param) {
+          const urlParams = new URLSearchParams(window.location.search);
+          return urlParams.get(param);
+        }
 
-    // expose dictionary for JS (main.js can use it for dynamic labels)
-    window.__I18N_LANG = lang;
-    window.__I18N_DICT = dict;
-    if (dict["title"]) document.title = dict["title"];
+        let currentLang =
+          getQueryParam("lang") || localStorage.getItem("lang") || "ua";
 
-    Object.keys(dict).forEach(id => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const val = dict[id];
+        function updateURL(lang) {
+          const urlParams = new URLSearchParams(window.location.search);
+          urlParams.set("lang", lang);
+          window.history.replaceState(
+            {},
+            "",
+            `${window.location.pathname}?${urlParams.toString()}`,
+          );
+        }
 
-      if (el.getAttribute("data-i18n-html") === "1") {
-        el.innerHTML = val;
-      } else {
-        el.textContent = val;
-      }
-    });
+        function updateLinksLanguage(lang) {
+          const links = document.querySelectorAll("a[href]");
+          links.forEach((link) => {
+            const href = link.getAttribute("href") || "";
+            if (href.includes("lang=")) {
+              link.setAttribute(
+                "href",
+                href.replace(/lang=(ua|en)/, `lang=${lang}`),
+              );
+            }
+          });
+        }
 
-    updateLinksLanguage(lang);
-    try { document.dispatchEvent(new Event('i18n-updated')); } catch (e) {}
-  }
+        function applyTranslations(translations, lang) {
+          const dict = translations && translations[lang];
+          if (!dict) return;
 
-  function loadTranslations(lang) {
-    fetch("translations.json")
-      .then(res => res.json())
-      .then(translations => applyTranslations(translations, lang))
-      .catch(() => { /* silent */ });
-  }
+          // expose dictionary for JS (main.js can use it for dynamic labels)
+          window.__I18N_LANG = lang;
+          window.__I18N_DICT = dict;
+          if (dict["title"]) document.title = dict["title"];
 
-  function switchLanguage(lang) {
-    localStorage.setItem("lang", lang);
-    updateURL(lang);
-    loadTranslations(lang);
-  }
+          Object.keys(dict).forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const val = dict[id];
 
-  document.getElementById("switchLangUA")?.addEventListener("click", function (e) {
-    e.preventDefault();
-    switchLanguage("ua");
-  });
+            if (el.getAttribute("data-i18n-html") === "1") {
+              el.innerHTML = val;
+            } else {
+              el.textContent = val;
+            }
+          });
 
-  document.getElementById("switchLangEN")?.addEventListener("click", function (e) {
-    e.preventDefault();
-    switchLanguage("en");
-  });
+          // Samples dropdown optgroup labels (if present)
+          const gMol = document.getElementById("sample-group-molecules");
+          if (gMol && dict.sampleGroupMolecules) {
+            gMol.label = dict.sampleGroupMolecules;
+          }
+          const gCr = document.getElementById("sample-group-crystals");
+          if (gCr && dict.sampleGroupCrystals) {
+            gCr.label = dict.sampleGroupCrystals;
+          }
+          const gProt = document.getElementById("sample-group-proteins");
+          if (gProt && dict.sampleGroupProteins) {
+            gProt.label = dict.sampleGroupProteins;
+          }
 
-  updateURL(currentLang);
-  loadTranslations(currentLang);
-});
-</script>
+          updateLinksLanguage(lang);
+          try {
+            document.dispatchEvent(new Event("i18n-updated"));
+          } catch (e) {}
+        }
 
-  <script type="module">
-    import { interactive_em_image } from './js/app/main.js';
+        function loadTranslations(lang) {
+          fetch("translations.json")
+            .then((res) => res.json())
+            .then((translations) => applyTranslations(translations, lang))
+            .catch(() => {
+              /* silent */
+            });
+        }
 
-    window.RDKitReady = window.initRDKitModule({
-      locateFile: () => './rdkit/RDKit_minimal.wasm'
-    });
+        function switchLanguage(lang) {
+          localStorage.setItem("lang", lang);
+          updateURL(lang);
+          loadTranslations(lang);
+        }
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      await window.RDKitReady;
-      const smiles = "[Ni+2].[O-]C([O-])=O";
-      await interactive_em_image(smiles, "");
+        document
+          .getElementById("switchLangUA")
+          ?.addEventListener("click", function (e) {
+            e.preventDefault();
+            switchLanguage("ua");
+          });
 
-      document.addEventListener('dragover', (ev) => ev.preventDefault());
-      document.addEventListener('drop', async (ev) => {
-        ev.preventDefault();
-        const files = ev.dataTransfer?.files;
-        if (!files || !files.length) return;
+        document
+          .getElementById("switchLangEN")
+          ?.addEventListener("click", function (e) {
+            e.preventDefault();
+            switchLanguage("en");
+          });
 
-        const f = files[0];
-        const name = (f.name || '').toLowerCase();
-        const isPoscarName = (name === 'poscar' || name === 'contcar');
-        if (!(isPoscarName || name.endsWith('.cif') || name.endsWith('.csv') || name.endsWith('.xyz') || name.endsWith('.json') || name.endsWith('.mol') || name.endsWith('.pdb') || name.endsWith('.ent') || name.endsWith('.poscar') || name.endsWith('.contcar') || name.endsWith('.vasp'))) return;
-
-        try {
-          const text = await f.text();
-          const ev2 = new Event('tem-file-drop', { bubbles: true });
-          ev2.temFile = f;
-          ev2.temText = text;
-          document.dispatchEvent(ev2);
-        } catch (_) {}
+        updateURL(currentLang);
+        loadTranslations(currentLang);
       });
-    });
-  </script>
-</head>
+    </script>
 
-<body>
-  <header>
-  <div class="top_container">
-    <div class="qr">
-      <img src="./img_web/qr.png" style="width: 100%; max-width: 100px; margin: 0px 10px 0px;" alt="" onerror="this.style.visibility='hidden'">
-    </div>
-    <div>
-      <h1 style="margin: auto 0px 0px" id="pageTitle">SciGenTEM Візуалізатор</h1>
-    </div>
-    <div class="lang_container">
-      <a class="lang_link" id="switchLangUA">UA</a>
-      <p class="lang_link"> | </p>
-      <a class="lang_link" id="switchLangEN">ENG</a>
-    </div>
-  </div>
-</header>
+    <script type="module">
+      import { interactive_em_image } from "./js/app/main.js";
 
-  <div class="container">
-    <div class="main-block">
-      <h2 id="vizTitle">Візуалізатор</h2>
+      window.RDKitReady = window.initRDKitModule({
+        locateFile: () => "./rdkit/RDKit_minimal.wasm",
+      });
 
-      <div class="center_canvas_wrap">
-        <canvas id="canvas" width="400" height="400"></canvas>
+      window.addEventListener("DOMContentLoaded", async () => {
+        await window.RDKitReady;
+        const smiles = "";
+        await interactive_em_image(smiles, "");
+
+        document.addEventListener("dragover", (ev) => ev.preventDefault());
+        document.addEventListener("drop", async (ev) => {
+          ev.preventDefault();
+          const files = ev.dataTransfer?.files;
+          if (!files || !files.length) return;
+
+          const f = files[0];
+          const name = (f.name || "").toLowerCase();
+          const isPoscarName = name === "poscar" || name === "contcar";
+          if (
+            !(
+              isPoscarName ||
+              name.endsWith(".cif") ||
+              name.endsWith(".csv") ||
+              name.endsWith(".xyz") ||
+              name.endsWith(".json") ||
+              name.endsWith(".mol") ||
+              name.endsWith(".pdb") ||
+              name.endsWith(".ent") ||
+              name.endsWith(".poscar") ||
+              name.endsWith(".contcar") ||
+              name.endsWith(".vasp")
+            )
+          )
+            return;
+
+          try {
+            const text = await f.text();
+            const ev2 = new Event("tem-file-drop", { bubbles: true });
+            ev2.temFile = f;
+            ev2.temText = text;
+            document.dispatchEvent(ev2);
+          } catch (_) {}
+        });
+      });
+    </script>
+  </head>
+
+  <body>
+    <header>
+      <div class="top_container">
+        <div class="qr">
+          <img
+            src="./img_web/qr.png"
+            style="width: 100%; max-width: 100px; margin: 0px 10px 0px"
+            alt=""
+            onerror="this.style.visibility = 'hidden'"
+          />
+        </div>
+        <div>
+          <h1 style="margin: auto 0px 0px" id="pageTitle">
+            SciGenTEM Візуалізатор
+          </h1>
+        </div>
+        <div class="lang_container">
+          <a class="lang_link" id="switchLangUA">UA</a>
+          <p class="lang_link">|</p>
+          <a class="lang_link" id="switchLangEN">ENG</a>
+        </div>
       </div>
-
-      <div class="canvas_tools">
-        <div>
-          <label id="lblW" for="tb-w">Ширина (px)</label>
-          <input type="number" id="tb-w" value="400" min="128" max="4096" />
-        </div>
-        <div>
-          <label id="lblH" for="tb-h">Висота (px)</label>
-          <input type="number" id="tb-h" value="400" min="128" max="4096" />
-        </div>
-        <div>
-          <button class="btn" id="btn-export"><span id="lblExport">Експортувати PNG</span></button>
-        </div>
+      <div class="header_help_row">
+        <a
+          href="./help.html?lang=ua"
+          id="helpTitle"
+          class="header_help_link"
+        ></a>
       </div>
+    </header>
 
-      
-      <div class="canvas_tools">
-        <div>
-          <button class="btn" id="btn-gif-start"><span id="lblGifStart">● Start GIF</span></button>
+    <div class="container">
+      <div class="tem_app">
+        <div class="tem_controls">
+          <div class="download-block">
+            <h2 id="ctrlTitle">Керування</h2>
+
+            <div class="tem_grid">
+              <div class="tem_full">
+                <label id="lblSmiles" for="tb-smiles">SMILES</label>
+                <input type="text" id="tb-smiles" />
+                <div
+                  id="smiles-error"
+                  class="error"
+                  style="display: none"
+                ></div>
+              </div>
+
+              <div class="tem_full">
+                <label id="lblSamples" for="sel-samples">Зразки</label>
+                <select id="sel-samples">
+                  <option id="samplesPlaceholder" value="__placeholder__">
+                    Зразки…
+                  </option>
+                  <optgroup
+                    id="sample-group-molecules"
+                    label="Молекули (SMILES)"
+                  >
+                    <option id="sampleCaffeine" value="smiles:caffeine">
+                      Кофеїн (SMILES)
+                    </option>
+                    <option id="sampleBenzene" value="smiles:benzene">
+                      Бензен (SMILES)
+                    </option>
+                  </optgroup>
+                  <optgroup
+                    id="sample-group-crystals"
+                    label="Кристали (CIF/POSCAR)"
+                  >
+                    <option id="sampleUAsSeCif" value="file:UAsSe.cif">
+                      UAsSe (CIF)
+                    </option>
+                    <option id="sampleUAsSePoscar" value="file:UAsSe.poscar">
+                      UAsSe (POSCAR)
+                    </option>
+                  </optgroup>
+                  <optgroup id="sample-group-proteins" label="Білки (PDB/ENT)">
+                    <option id="sampleHemoglobin4hhb" value="file:pdb4hhb.ent">
+                      Hemoglobin 4HHB (PDB)
+                    </option>
+                  </optgroup>
+                </select>
+                <div class="muted" id="lblSamplesStatus"></div>
+                <!-- Sample files should be placed in /samples/: UAsSe.cif, UAsSe.poscar, pdb4hhb.ent -->
+              </div>
+              <div class="tem_full">
+                <label id="lblTiles" for="tb-nx">Tiles (Nx×Ny×Nz)</label>
+                <div class="tiles_grid" aria-label="Tiles Nx Ny Nz">
+                  <div>
+                    <input
+                      type="number"
+                      id="tb-nx"
+                      value="1"
+                      min="1"
+                      step="1"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="number"
+                      id="tb-ny"
+                      value="1"
+                      min="1"
+                      step="1"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="number"
+                      id="tb-nz"
+                      value="1"
+                      min="1"
+                      step="1"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="tem_full file_row">
+                <label class="file_button" for="file-input" id="lblFileBtn">
+                  Завантажити файл (.cif, .csv, .xyz, .json, .mol, .pdb/.ent,
+                  POSCAR/CONTCAR) або просто перетягніть на сторінку.
+                </label>
+                <input
+                  id="file-input"
+                  type="file"
+                  accept=".cif,.csv,.xyz,.json,.mol,.pdb,.ent,.poscar,.contcar,.vasp"
+                />
+                <div class="sources">
+                  <span id="lblSources">Де брати файли:</span>
+                  <a
+                    href="https://next-gen.materialsproject.org/"
+                    target="_blank"
+                    rel="noopener"
+                    >Materials Project</a
+                  >
+                </div>
+              </div>
+
+              <div class="tem_full">
+                <label id="lblViewControls"
+                  >Столик (панорамування + обертання)</label
+                >
+                <div class="viewpad" aria-label="Керування в’юхою">
+                  <button class="viewbtn" id="btn-view-rotl" title="⟲">
+                    ⟲
+                  </button>
+                  <button class="viewbtn" id="btn-view-up" title="↑">↑</button>
+                  <button class="viewbtn" id="btn-view-rotr" title="⟳">
+                    ⟳
+                  </button>
+
+                  <button class="viewbtn" id="btn-view-left" title="←">
+                    ←
+                  </button>
+                  <button class="viewbtn" id="btn-view-reset" title="Reset">
+                    •
+                  </button>
+                  <button class="viewbtn" id="btn-view-right" title="→">
+                    →
+                  </button>
+
+                  <button class="viewbtn" id="btn-model-x90" title="X90">
+                    X90
+                  </button>
+                  <button class="viewbtn" id="btn-view-down" title="↓">
+                    ↓
+                  </button>
+                  <button class="viewbtn" id="btn-model-y90" title="Y90">
+                    Y90
+                  </button>
+                </div>
+              </div>
+
+              <div class="tem_full" id="mode-block">
+                <label id="lblMode" for="sel-mode">Режим мікроскопії</label>
+                <select id="sel-mode">
+                  <option value="TEM">TEM</option>
+                  <option value="STM">STM</option>
+                  <option value="AFM">AFM</option>
+                </select>
+                <div class="mode_desc" id="lbl-mode-desc">
+                  TEM — “проєкційний контраст”, STM/AFM — “поверхневі режими,
+                  DoF вимкнено”.
+                </div>
+              </div>
+
+              <div class="checks_inline tem_full">
+                <label
+                  ><input type="checkbox" id="cb-invert" />
+                  <span id="lblInvert">Інверсія</span></label
+                >
+                <label
+                  ><input type="checkbox" id="cb-noise" />
+                  <span id="lblNoise">Шум</span></label
+                >
+                <label
+                  ><input type="checkbox" id="cb-bonds" checked />
+                  <span id="lblBonds">Зв'язки</span></label
+                >
+                <label
+                  ><input type="checkbox" id="cb-hidefront" />
+                  <span id="lblHideFront">Ховати передні шари</span></label
+                >
+                <label
+                  ><input type="checkbox" id="cb-scale" checked />
+                  <span id="lblScale">Масштаб</span></label
+                >
+                <label id="row-scanlines" class="ui_hidden"
+                  ><input type="checkbox" id="cb-scanlines" />
+                  <span id="lblScanlines">Scanlines</span></label
+                >
+              </div>
+
+              <div class="tem_full range_row">
+                <label id="lblZoom" for="rng-zoom">Å/pix</label>
+                <input
+                  type="range"
+                  id="rng-zoom"
+                  min="0.01"
+                  max="0.5"
+                  step="0.005"
+                  value="0.1"
+                />
+              </div>
+
+              <div class="tem_full range_row">
+                <label id="lblContrast" for="rng-contrast">Контраст</label>
+                <input
+                  type="range"
+                  id="rng-contrast"
+                  min="0.02"
+                  max="10.0"
+                  step="0.01"
+                  value="1.0"
+                />
+              </div>
+
+              <div class="tem_full range_row">
+                <label id="lblBlur" for="rng-blur">Розмиття (σ)</label>
+                <input
+                  type="range"
+                  id="rng-blur"
+                  min="0.01"
+                  max="10.0"
+                  step="0.01"
+                  value="1.0"
+                />
+              </div>
+
+              <div class="tem_full range_row">
+                <label for="rng-bg"
+                  ><span id="lblBg">Фон (0–255):</span>
+                  <span class="muted" id="lbl-bg">127</span></label
+                >
+                <input
+                  type="range"
+                  id="rng-bg"
+                  min="0"
+                  max="255"
+                  step="1"
+                  value="127"
+                />
+              </div>
+
+              <div class="tem_full range_row">
+                <label id="lblNoiseSigma" for="rng-noise">Шум (σ)</label>
+                <input
+                  type="range"
+                  id="rng-noise"
+                  min="0.0"
+                  max="10.0"
+                  step="0.1"
+                  value="3.5"
+                />
+              </div>
+
+              <div class="tem_full range_row">
+                <label id="lblFocus" for="rng-focus">Фокус Z (норм.)</label>
+                <input
+                  type="range"
+                  id="rng-focus"
+                  min="0.0"
+                  max="1.0"
+                  step="0.01"
+                  value="0.5"
+                />
+              </div>
+
+              <div class="tem_full range_row">
+                <label id="lblDof" for="rng-dof">Розфокус (Å⁻¹)</label>
+                <input
+                  type="range"
+                  id="rng-dof"
+                  min="0.0"
+                  max="0.0001"
+                  step="0.00001"
+                  value="0.00005"
+                />
+              </div>
+
+              <div class="tem_full range_row ui_hidden" id="row-tip">
+                <label id="lblTip" for="rng-tip">Tip sharpness</label>
+                <input
+                  type="range"
+                  id="rng-tip"
+                  min="0.0"
+                  max="1.0"
+                  step="0.01"
+                  value="0.5"
+                />
+              </div>
+
+              <!-- Brightness clip min/max (non-primary feature) is now under "Additional settings" -->
+            </div>
+
+            <details
+              class="tem_full"
+              id="elem-override-details"
+              style="margin-top: 10px"
+            >
+              <summary style="cursor: pointer; font-weight: 700">
+                <span id="ui.elemOverrides.title">Додаткові налаштування</span>
+              </summary>
+              <div style="margin-top: 10px">
+                <div style="padding: 6px 0 2px 0">
+                  <div class="muted" id="ui.extraSettings.bondsNote">
+                    Налаштування вигляду зв’язків
+                  </div>
+                </div>
+                <div class="range_row">
+                  <label id="lblBWidth" for="rng-bwidth"
+                    >Ширина зв’язків (px)</label
+                  >
+                  <input
+                    type="range"
+                    id="rng-bwidth"
+                    min="2"
+                    max="24"
+                    step="1"
+                    value="6"
+                  />
+                </div>
+
+                <div class="range_row">
+                  <label id="lblBAmp" for="rng-bamp">Яскравість зв’язків</label>
+                  <input
+                    type="range"
+                    id="rng-bamp"
+                    min="0.2"
+                    max="5.0"
+                    step="0.05"
+                    value="0.4"
+                  />
+                </div>
+
+                <!-- Brightness clip (min/max). Hidden in additional settings by request. -->
+                <div class="range_row">
+                  <label id="lblClipLo" for="tb-clip-lo"
+                    >Підлога яскравості</label
+                  >
+                  <input
+                    type="number"
+                    id="tb-clip-lo"
+                    step="1"
+                    min="0"
+                    max="255"
+                  />
+                </div>
+
+                <div class="range_row">
+                  <label id="lblClipHi" for="tb-clip-hi"
+                    >Стеля яскравості</label
+                  >
+                  <input
+                    type="number"
+                    id="tb-clip-hi"
+                    step="1"
+                    min="0"
+                    max="255"
+                  />
+                </div>
+
+                <div id="elem-override-table"></div>
+
+                <div
+                  class="canvas_tools"
+                  style="grid-template-columns: 1fr 1fr 1fr; margin-top: 10px"
+                >
+                  <button class="btn" id="btn-elem-ov-reset" type="button">
+                    <span id="ui.elemOverrides.reset">Reset overrides</span>
+                  </button>
+                  <button class="btn" id="btn-elem-ov-export" type="button">
+                    <span id="ui.elemOverrides.export">Export config</span>
+                  </button>
+                  <button class="btn" id="btn-elem-ov-import" type="button">
+                    <span id="ui.elemOverrides.import">Import config</span>
+                  </button>
+                </div>
+
+                <input
+                  id="file-elem-ov-import"
+                  type="file"
+                  accept="application/json"
+                />
+              </div>
+            </details>
+          </div>
+
+          <div class="instructions">
+            <h2 id="quickStartTitle">Швидкий старт</h2>
+            <ol>
+              <li id="quick1">Встав SMILES у поле і натисни Enter.</li>
+              <li id="quick2">
+                Або завантаж / перетягни .cif, .csv, .xyz, .json або .pdb/.ent
+                файл на сторінку.
+              </li>
+              <li id="quick3">
+                Для CIF можна вказати Tiles (наприклад 2x2x1).
+              </li>
+            </ol>
+          </div>
+
+          <h4 id="authorsLabel">Автори:</h4>
+          <h4>
+            <a class="black_link" href="https://nure.ua/en/staff/pavlo-kozub"
+              >Павло Козуб</a
+            >
+          </h4>
+          <h4><a class="black_link" href="">Ярослав Теляшенко</a></h4>
         </div>
-        <div>
-          <button class="btn" id="btn-gif-stop" disabled><span id="lblGifStop">■ Stop</span></button>
-        </div>
-        <div>
-          <button class="btn" id="btn-gif-download" disabled><span id="lblGifDownload">⬇ Download</span></button>
-        </div>
-      </div>
-      <div class="muted" id="lbl-gif-status"></div>
+        <div class="tem_view">
+          <div class="main-block tem_view_sticky">
+            <h2 id="vizTitle">Візуалізатор</h2>
 
-      <div class="canvas_meta">
-        <div class="small_links">
-          <a href="./help.html?lang=ua" id="helpLink">Інструкція та формати</a>
-        </div>
-        <div class="muted" id="lbl-title"></div>
-      </div>
-    </div>
+            <div class="center_canvas_wrap">
+              <canvas id="canvas" width="400" height="400"></canvas>
+            </div>
 
-    <div class="download-block">
-      <h2 id="ctrlTitle">Керування</h2>
+            <div class="canvas_tools">
+              <div>
+                <label id="lblW" for="tb-w">Ширина (px)</label>
+                <input
+                  type="number"
+                  id="tb-w"
+                  value="400"
+                  min="128"
+                  max="4096"
+                />
+              </div>
+              <div>
+                <label id="lblH" for="tb-h">Висота (px)</label>
+                <input
+                  type="number"
+                  id="tb-h"
+                  value="400"
+                  min="128"
+                  max="4096"
+                />
+              </div>
+              <div>
+                <button class="btn" id="btn-export">
+                  <span id="lblExport">Експортувати PNG</span>
+                </button>
+              </div>
 
-      <div class="tem_grid">
-        <div class="tem_full">
-          <label id="lblSmiles" for="tb-smiles">SMILES</label>
-          <input type="text" id="tb-smiles" />
-        </div>
+              <div>
+                <button class="btn" id="resetSettings" type="button">
+                  <span id="resetSettingsLabel">Скинути налаштування</span>
+                </button>
+              </div>
+            </div>
+            <div class="canvas_tools">
+              <div>
+                <button class="btn" id="btn-gif-start">
+                  <span id="lblGifStart">● Start GIF</span>
+                </button>
+              </div>
+              <div>
+                <button class="btn" id="btn-gif-stop" disabled>
+                  <span id="lblGifStop">■ Stop</span>
+                </button>
+              </div>
+              <div>
+                <button class="btn" id="btn-gif-download" disabled>
+                  <span id="lblGifDownload">⬇ Download</span>
+                </button>
+              </div>
+            </div>
+            <div class="muted" id="lbl-gif-status"></div>
 
-        <div class="tem_full">
-          <label id="lblTiles" for="tb-tiles">Tiles (для CIF: 2x2x1)</label>
-          <input type="text" id="tb-tiles" placeholder="(порожньо=без size)" />
-        </div>
-
-        <div class="tem_full file_row">
-          <label class="file_button" for="file-input" id="lblFileBtn">Завантажити файл (.cif, .csv, .xyz, .json, .mol, .pdb/.ent, POSCAR/CONTCAR)</label>
-          <input id="file-input" type="file" accept=".cif,.csv,.xyz,.json,.mol,.pdb,.ent,.poscar,.contcar,.vasp" />
-          <div class="muted" id="lblDropHint">Можна перетягнути файл на сторінку (drag&drop) — він завантажиться локально.</div>
-
-          <div class="sources">
-            <span id="lblSources">Де брати файли:</span>
-            <a href="https://next-gen.materialsproject.org/" target="_blank" rel="noopener">Materials Project</a>
+            <div class="canvas_meta">
+              <div class="small_links"></div>
+              <div class="muted" id="lbl-title"></div>
+            </div>
           </div>
         </div>
-
-        <div class="tem_full">
-          <label id="lblViewControls">Столик (панорамування + обертання)</label>
-          <div class="viewpad" aria-label="Керування в’юхою">
-            <button class="viewbtn" id="btn-view-rotl" title="⟲">⟲</button>
-            <button class="viewbtn" id="btn-view-up" title="↑">↑</button>
-            <button class="viewbtn" id="btn-view-rotr" title="⟳">⟳</button>
-
-            <button class="viewbtn" id="btn-view-left" title="←">←</button>
-            <button class="viewbtn" id="btn-view-reset" title="Reset">•</button>
-            <button class="viewbtn" id="btn-view-right" title="→">→</button>
-
-            <button class="viewbtn" id="btn-model-x90" title="X90">X90</button>
-            <button class="viewbtn" id="btn-view-down" title="↓">↓</button>
-            <button class="viewbtn" id="btn-model-y90" title="Y90">Y90</button>
-          </div>
-        </div>
-
-        
-        <div class="tem_full" id="mode-block">
-          <label id="lblMode" for="sel-mode">Режим мікроскопії</label>
-          <select id="sel-mode">
-            <option value="TEM">TEM</option>
-            <option value="STM">STM</option>
-            <option value="AFM">AFM</option>
-          </select>
-          <div class="mode_desc" id="lbl-mode-desc">TEM — “проєкційний контраст”, STM/AFM — “поверхневі режими, DoF вимкнено”.</div>
-        </div>
-
-<div class="checks_inline tem_full">
-          <label><input type="checkbox" id="cb-invert" /> <span id="lblInvert">Інверсія</span></label>
-          <label><input type="checkbox" id="cb-noise" /> <span id="lblNoise">Шум</span></label>
-          <label><input type="checkbox" id="cb-bonds" checked /> <span id="lblBonds">Зв'язки</span></label>
-          <label><input type="checkbox" id="cb-hidefront" /> <span id="lblHideFront">Ховати передні шари</span></label>
-          <label><input type="checkbox" id="cb-scale" checked /> <span id="lblScale">Масштаб</span></label>
-          <label id="row-scanlines" class="ui_hidden"><input type="checkbox" id="cb-scanlines" /> <span id="lblScanlines">Scanlines</span></label>
-        </div>
-
-        <div class="tem_full range_row">
-          <label id="lblZoom" for="rng-zoom">Å/pix</label>
-          <input type="range" id="rng-zoom" min="0.01" max="0.5" step="0.005" value="0.1" />
-        </div>
-
-        <div class="tem_full range_row">
-          <label id="lblContrast" for="rng-contrast">Контраст</label>
-          <input type="range" id="rng-contrast" min="0.02" max="10.0" step="0.01" value="1.0" />
-        </div>
-
-        <div class="tem_full range_row">
-          <label id="lblBlur" for="rng-blur">Розмиття (σ)</label>
-          <input type="range" id="rng-blur" min="0.01" max="10.0" step="0.01" value="1.0" />
-        </div>
-
-        <div class="tem_full range_row">
-          <label id="lblBg" for="rng-bg">Фон (0–255): <span class="muted" id="lbl-bg">127</span></label>
-          <input type="range" id="rng-bg" min="0" max="255" step="1" value="127" />
-        </div>
-
-        <div class="tem_full range_row">
-          <label id="lblNoiseSigma" for="rng-noise">Шум (σ)</label>
-          <input type="range" id="rng-noise" min="0.0" max="10.0" step="0.1" value="3.5" />
-        </div>
-
-        <div class="tem_full range_row">
-          <label id="lblFocus" for="rng-focus">Фокус Z (норм.)</label>
-          <input type="range" id="rng-focus" min="0.0" max="1.0" step="0.01" value="0.5" />
-        </div>
-
-        <div class="tem_full range_row">
-          <label id="lblDof" for="rng-dof">Розфокус (Å⁻¹)</label>
-          <input type="range" id="rng-dof" min="0.0" max="0.0001" step="0.00001" value="0.00005" />
-        </div>
-
-        <div class="tem_full range_row ui_hidden" id="row-tip">
-          <label id="lblTip" for="rng-tip">Tip sharpness</label>
-          <input type="range" id="rng-tip" min="0.0" max="1.0" step="0.01" value="0.5" />
-        </div>
-
-
-        <div class="range_row">
-          <label id="lblBWidth" for="rng-bwidth">Ширина дуги (px)</label>
-          <input type="range" id="rng-bwidth" min="2" max="24" step="1" value="6" />
-        </div>
-
-        <div class="range_row">
-          <label id="lblBAmp" for="rng-bamp">Висота дуги</label>
-          <input type="range" id="rng-bamp" min="0.2" max="5.0" step="0.05" value="0.4" />
-        </div>
-
-        <div class="range_row">
-          <label id="lblClipLo" for="tb-clip-lo">Підлога яскравості</label>
-          <input type="number" id="tb-clip-lo" step="1" min="0" max="255" />
-        </div>
-
-        <div class="range_row">
-          <label id="lblClipHi" for="tb-clip-hi">Стеля яскравості</label>
-          <input type="number" id="tb-clip-hi" step="1" min="0" max="255" />
-        </div>
       </div>
     </div>
-
-    <div class="instructions">
-      <h2 id="quickStartTitle">Швидкий старт</h2>
-      <ol>
-        <li id="quick1">Встав SMILES у поле і натисни Enter.</li>
-        <li id="quick2">Або завантаж / перетягни .cif, .csv, .xyz, .json або .pdb/.ent файл на сторінку.</li>
-        <li id="quick3">Для CIF можна вказати Tiles (наприклад 2x2x1).</li>
-      </ol>
-    </div>
-
-    <h4 id="authorsLabel">Автори:</h4>
-    <h4><a class="black_link" href="https://nure.ua/en/staff/pavlo-kozub">Павло Козуб</a></h4>
-    <h4><a class="black_link" href="">Ярослав Теляшенко</a></h4>
-  </div>
-</body>
+  </body>
 </html>

@@ -13,6 +13,51 @@ import {
     draw_scale_bar
 } from './render_common.js';
 
+
+// Element overrides helper (Z->symbol fallback)
+const _EO_Z2SYM = [
+  null,
+  "H","He",
+  "Li","Be","B","C","N","O","F","Ne",
+  "Na","Mg","Al","Si","P","S","Cl","Ar",
+  "K","Ca","Sc","Ti","V","Cr","Mn","Fe","Co","Ni","Cu","Zn",
+  "Ga","Ge","As","Se","Br","Kr",
+  "Rb","Sr","Y","Zr","Nb","Mo","Tc","Ru","Rh","Pd","Ag","Cd",
+  "In","Sn","Sb","Te","I","Xe",
+  "Cs","Ba","La","Ce","Pr","Nd","Pm","Sm","Eu","Gd","Tb","Dy","Ho","Er","Tm","Yb","Lu",
+  "Hf","Ta","W","Re","Os","Ir","Pt","Au","Hg",
+  "Tl","Pb","Bi","Po","At","Rn",
+  "Fr","Ra","Ac","Th","Pa","U","Np","Pu","Am","Cm","Bk","Cf","Es","Fm","Md","No","Lr",
+  "Rf","Db","Sg","Bh","Hs","Mt","Ds","Rg","Cn",
+  "Nh","Fl","Mc","Lv","Ts","Og"
+];
+
+function _EO_atomSymbol(a) {
+  if (!a) return null;
+  let s = a.sym || a.el || a.symbol || a.element;
+  if (typeof s === "string") {
+    s = s.trim();
+    if (s) return s;
+  }
+  const Z = a.Z;
+  if (Number.isFinite(Z)) {
+    const zi = Z | 0;
+    if (zi > 0 && zi < _EO_Z2SYM.length) return _EO_Z2SYM[zi] || null;
+  }
+  return null;
+}
+
+function _EO_getMul(ov, sym) {
+  let sizeMul = 1.0;
+  let darkMul = 1.0;
+  if (ov && sym && ov[sym]) {
+    const it = ov[sym];
+    if (it && Number.isFinite(it.size)) sizeMul = it.size;
+    if (it && Number.isFinite(it.dark)) darkMul = it.dark;
+  }
+  return [sizeMul, darkMul];
+}
+
 export function draw_atoms(img, atoms, coords, scale, background_gray, opts = {}) {
     const {
         compose = 'sum',
@@ -27,6 +72,9 @@ export function draw_atoms(img, atoms, coords, scale, background_gray, opts = {}
     const Zs = atoms.map(a => a.Z | 0);
     const radiiA = Zs.map(Z => get_covalent_radius(Z));
 
+    // Element overrides (per-element multipliers)
+    const ov = (opts && opts.element_overrides) ? opts.element_overrides : null;
+
     // v3: 2D Gaussian як wx * wy (1D ваги по X/Y)
     // v4: wx/wy беруться з кешу getGaussian1D_cached() (менше exp() + майже без алокацій)
 
@@ -36,6 +84,9 @@ export function draw_atoms(img, atoms, coords, scale, background_gray, opts = {}
 
         const zv = (opts && Array.isArray(opts.z_view)) ? opts.z_view : null;
         if (hide_front && ((zv ? (zv[i] ?? 0) : (atoms[i].z ?? 0)) > focal_z + 1e-9)) continue;
+
+        const sym = _EO_atomSymbol(atoms[i]);
+        const [sizeMul, darkMul] = _EO_getMul(ov, sym);
 
         // Реалістична "геометрична" ширина атома: залежить від ковалентного радіуса
         // atom_size_mul — загальний множник, atom_size_exp — підсилює різницю між H і важкими
@@ -47,6 +98,7 @@ export function draw_atoms(img, atoms, coords, scale, background_gray, opts = {}
         // + LOD-кап по масштабу, щоб важкі елементи/кристали не перетворювались на "чорну пляму"
         //   (кап прив’язаний до типового bond-length у пікселях, а не до формату)
         let sigma = Math.max(1e-6, Math.pow(rA, atom_size_exp) * scale * atom_size_mul);
+        sigma *= sizeMul;
         const typical_bond_A = opts.typical_bond_A ?? 1.40;               // Å
         const cap_rel_bond = opts.atom_sigma_cap_rel_bond ?? 0.55;        // частка від bondPx
         const cap_abs_px = opts.atom_sigma_cap_abs_px ?? 24.0;            // абсолютний safety-cap
@@ -56,7 +108,7 @@ export function draw_atoms(img, atoms, coords, scale, background_gray, opts = {}
         // Інтенсивність
         const atom_dark_mul = opts.atom_dark_mul ?? 2.5;   // 1.5..4.0
         const atom_dark_exp = opts.atom_dark_exp ?? 1.2;   // 1.1..1.6
-        const baseZ = Math.pow(Zs[i], atom_dark_exp);
+        const baseZ = Math.pow(Zs[i], atom_dark_exp) * darkMul;
         const intensity = -(baseZ * atom_dark_mul);
 
         // «ядро»
@@ -214,6 +266,7 @@ export function render_image_tem(
         dof_strength = 0.0,
         hide_front = false,
         show_scale_bar = false,
+        element_overrides = null,
         scale_bar_corner = 'bl',
         scale_bar_margin_px = 12,
 
@@ -386,6 +439,7 @@ export function render_image_tem(
         dof_strength: 0,
         hide_front,
         z_view: z_draw,
+        element_overrides,
 
         // тюнінги атомів
         atom_size_mul,
