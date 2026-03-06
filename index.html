@@ -577,6 +577,107 @@
             gProt.label = dict.sampleGroupProteins;
           }
 
+          // Tooltips (native title=) with i18n
+          function applyTooltips() {
+            const map = {
+              // main inputs
+              "tb-smiles": "iSmilesDesc",
+              "sel-samples": "ttSamples",
+              lblFileBtn: "iFileDesc",
+              "tb-nx": "iTilesDesc",
+              "tb-ny": "iTilesDesc",
+              "tb-nz": "iTilesDesc",
+              "sel-mode": "ttMode",
+
+              // toggles
+              "cb-invert": "tInvDesc",
+              "cb-noise": "tNoiseDesc",
+              "cb-bonds": "tBondsDesc",
+              "cb-hidefront": "tHideFrontDesc",
+              "cb-scale": "tScaleDesc",
+              "cb-scanlines": "ttScanlines",
+
+              // sliders
+              "rng-zoom": "sZoomDesc",
+              "rng-contrast": "sContrastDesc",
+              "rng-blur": "sBlurDesc",
+              "rng-bg": "sBgDesc",
+              "rng-noise": "sNoiseDesc",
+              "rng-focus": "sFocusDesc",
+              "rng-dof": "sDofDesc",
+              "rng-tip": "ttTip",
+
+              // additional settings
+              "rng-bwidth": "sBwidthDesc",
+              "rng-bamp": "sBampDesc",
+              "tb-clip-lo": "iClipDesc",
+              "tb-clip-hi": "iClipDesc",
+
+              // export / size
+              "btn-export": "iExportDesc",
+              "tb-w": "iSizeDesc",
+              "tb-h": "iSizeDesc",
+              resetSettings: "ttResetSettings",
+
+              // view buttons
+              "btn-view-up": "ttPanUp",
+              "btn-view-down": "ttPanDown",
+              "btn-view-left": "ttPanLeft",
+              "btn-view-right": "ttPanRight",
+              "btn-view-rotl": "ttRotL",
+              "btn-view-rotr": "ttRotR",
+              "btn-view-reset": "ttViewReset",
+              "btn-model-x90": "ttX90",
+              "btn-model-y90": "ttY90",
+
+              // element overrides buttons
+              "btn-elem-ov-reset": "ttElemReset",
+              "btn-elem-ov-export": "ttElemExport",
+              "btn-elem-ov-import": "ttElemImport",
+              "file-elem-ov-import": "ttElemImport",
+            };
+
+            for (const id in map) {
+              const el = document.getElementById(id);
+              if (!el) continue;
+              const key = map[id];
+              const tip = dict[key];
+              if (typeof tip === "string" && tip.length) el.title = tip;
+            }
+
+            // Element overrides table (dynamic) — size/dark inputs + preview canvas
+            const cont = document.getElementById("elem-override-table");
+            if (cont) {
+              const rows = cont.querySelectorAll("table tbody tr");
+              rows.forEach((tr) => {
+                const ins = tr.querySelectorAll('input[type="number"]');
+                if (ins && ins[0] && dict.ttElemSize)
+                  ins[0].title = dict.ttElemSize;
+                if (ins && ins[1] && dict.ttElemDark)
+                  ins[1].title = dict.ttElemDark;
+                const cv = tr.querySelector("canvas");
+                if (cv && dict.ttElemPreview) cv.title = dict.ttElemPreview;
+              });
+
+              // Observe table rebuilds and re-apply tooltips
+              if (!window.__EO_TT_OBS) {
+                window.__EO_TT_OBS = new MutationObserver(() => {
+                  try {
+                    applyTooltips();
+                  } catch (_) {}
+                });
+                window.__EO_TT_OBS.observe(cont, {
+                  childList: true,
+                  subtree: true,
+                });
+              }
+            }
+          }
+
+          try {
+            applyTooltips();
+          } catch (_) {}
+
           updateLinksLanguage(lang);
           try {
             document.dispatchEvent(new Event("i18n-updated"));
@@ -752,6 +853,7 @@
                 <div class="muted" id="lblSamplesStatus"></div>
                 <!-- Sample files should be placed in /samples/: UAsSe.cif, UAsSe.poscar, pdb4hhb.ent -->
               </div>
+
               <div class="tem_full">
                 <label id="lblTiles" for="tb-nx">Tiles (Nx×Ny×Nz)</label>
                 <div class="tiles_grid" aria-label="Tiles Nx Ny Nz">
@@ -918,21 +1020,6 @@
               </div>
 
               <div class="tem_full range_row">
-                <label for="rng-bg"
-                  ><span id="lblBg">Фон (0–255):</span>
-                  <span class="muted" id="lbl-bg">127</span></label
-                >
-                <input
-                  type="range"
-                  id="rng-bg"
-                  min="0"
-                  max="255"
-                  step="1"
-                  value="127"
-                />
-              </div>
-
-              <div class="tem_full range_row">
                 <label id="lblNoiseSigma" for="rng-noise">Шум (σ)</label>
                 <input
                   type="range"
@@ -992,11 +1079,21 @@
                 <span id="ui.elemOverrides.title">Додаткові налаштування</span>
               </summary>
               <div style="margin-top: 10px">
-                <div style="padding: 6px 0 2px 0">
-                  <div class="muted" id="ui.extraSettings.bondsNote">
-                    Налаштування вигляду зв’язків
-                  </div>
+                <div class="tem_full range_row">
+                  <label for="rng-bg"
+                    ><span id="lblBg">Фон (0–255):</span>
+                    <span class="muted" id="lbl-bg">127</span></label
+                  >
+                  <input
+                    type="range"
+                    id="rng-bg"
+                    min="0"
+                    max="255"
+                    step="1"
+                    value="127"
+                  />
                 </div>
+
                 <div class="range_row">
                   <label id="lblBWidth" for="rng-bwidth"
                     >Ширина зв’язків (px)</label
@@ -1159,7 +1256,11 @@
             <div class="muted" id="lbl-gif-status"></div>
 
             <div class="canvas_meta">
-              <div class="small_links"></div>
+              <div class="small_links">
+                <a href="./help.html?lang=ua" id="helpLink"
+                  >Інструкція та формати</a
+                >
+              </div>
               <div class="muted" id="lbl-title"></div>
             </div>
           </div>
