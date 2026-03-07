@@ -1317,12 +1317,12 @@ export async function interactive_em_image(smiles_text, _unused) {
       kind: "smiles",
       smiles: "c1ccccc1",
     },
-    "file:UAsSe.cif": {
+    "file:Graphite.cif": {
       kind: "file",
       path: new URL("../../samples/Graphite.cif", import.meta.url).href,
       name: "Graphite.cif",
     },
-    "file:UAsSe.poscar": {
+    "file:Corundum.poscar": {
       kind: "file",
       path: new URL("../../samples/Corundum.poscar", import.meta.url).href,
       name: "Corundum.poscar",
