@@ -149,14 +149,13 @@ export async function interactive_em_image(smiles_text, _unused) {
   // ---- Element overrides (global per-element multipliers) ----
   // { "H": { size: 1.0, dark: 1.0 }, "O": { size: 1.2, dark: 0.8 } }
   var elementOverrides = {};
-  var _elemList = [];        // currently displayed elements (symbols)
-  var _elemListKey = "";     // cache key for quick equality
+  var _elemList = []; // currently displayed elements (symbols)
+  var _elemListKey = ""; // cache key for quick equality
   var _elemReprAtoms = Object.create(null); // sym -> representative atom (from current view)
   var _elemPreviewCanvasBySym = Object.create(null); // sym -> preview canvas
   var _elemPreviewRafPending = false;
   var _elemPreviewQueueAll = false;
   var _elemPreviewQueueSyms = Object.create(null);
-
 
   // ---- GIF recording ----
   // Recording is session-based: Start begins (or resumes) a session, Stop pauses it,
@@ -300,19 +299,124 @@ export async function interactive_em_image(smiles_text, _unused) {
   // Many providers keep only Z, so we use a minimal Z->symbol table as a fallback.
   var _Z2SYM = [
     null,
-    "H","He",
-    "Li","Be","B","C","N","O","F","Ne",
-    "Na","Mg","Al","Si","P","S","Cl","Ar",
-    "K","Ca","Sc","Ti","V","Cr","Mn","Fe","Co","Ni","Cu","Zn",
-    "Ga","Ge","As","Se","Br","Kr",
-    "Rb","Sr","Y","Zr","Nb","Mo","Tc","Ru","Rh","Pd","Ag","Cd",
-    "In","Sn","Sb","Te","I","Xe",
-    "Cs","Ba","La","Ce","Pr","Nd","Pm","Sm","Eu","Gd","Tb","Dy","Ho","Er","Tm","Yb","Lu",
-    "Hf","Ta","W","Re","Os","Ir","Pt","Au","Hg",
-    "Tl","Pb","Bi","Po","At","Rn",
-    "Fr","Ra","Ac","Th","Pa","U","Np","Pu","Am","Cm","Bk","Cf","Es","Fm","Md","No","Lr",
-    "Rf","Db","Sg","Bh","Hs","Mt","Ds","Rg","Cn",
-    "Nh","Fl","Mc","Lv","Ts","Og"
+    "H",
+    "He",
+    "Li",
+    "Be",
+    "B",
+    "C",
+    "N",
+    "O",
+    "F",
+    "Ne",
+    "Na",
+    "Mg",
+    "Al",
+    "Si",
+    "P",
+    "S",
+    "Cl",
+    "Ar",
+    "K",
+    "Ca",
+    "Sc",
+    "Ti",
+    "V",
+    "Cr",
+    "Mn",
+    "Fe",
+    "Co",
+    "Ni",
+    "Cu",
+    "Zn",
+    "Ga",
+    "Ge",
+    "As",
+    "Se",
+    "Br",
+    "Kr",
+    "Rb",
+    "Sr",
+    "Y",
+    "Zr",
+    "Nb",
+    "Mo",
+    "Tc",
+    "Ru",
+    "Rh",
+    "Pd",
+    "Ag",
+    "Cd",
+    "In",
+    "Sn",
+    "Sb",
+    "Te",
+    "I",
+    "Xe",
+    "Cs",
+    "Ba",
+    "La",
+    "Ce",
+    "Pr",
+    "Nd",
+    "Pm",
+    "Sm",
+    "Eu",
+    "Gd",
+    "Tb",
+    "Dy",
+    "Ho",
+    "Er",
+    "Tm",
+    "Yb",
+    "Lu",
+    "Hf",
+    "Ta",
+    "W",
+    "Re",
+    "Os",
+    "Ir",
+    "Pt",
+    "Au",
+    "Hg",
+    "Tl",
+    "Pb",
+    "Bi",
+    "Po",
+    "At",
+    "Rn",
+    "Fr",
+    "Ra",
+    "Ac",
+    "Th",
+    "Pa",
+    "U",
+    "Np",
+    "Pu",
+    "Am",
+    "Cm",
+    "Bk",
+    "Cf",
+    "Es",
+    "Fm",
+    "Md",
+    "No",
+    "Lr",
+    "Rf",
+    "Db",
+    "Sg",
+    "Bh",
+    "Hs",
+    "Mt",
+    "Ds",
+    "Rg",
+    "Cn",
+    "Nh",
+    "Fl",
+    "Mc",
+    "Lv",
+    "Ts",
+    "Og",
   ];
 
   // Fast symbol -> Z lookup (best effort). Used for preview when providers omit Z.
@@ -328,8 +432,14 @@ export async function interactive_em_image(smiles_text, _unused) {
   function atomSymbol(a) {
     if (!a) return null;
     var s =
-      a.sym || a.el || a.symbol || a.element ||
-      a.Sym || a.El || a.Symbol || a.Element;
+      a.sym ||
+      a.el ||
+      a.symbol ||
+      a.element ||
+      a.Sym ||
+      a.El ||
+      a.Symbol ||
+      a.Element;
     if (typeof s === "string") {
       s = s.trim();
       if (s) return s;
@@ -360,7 +470,7 @@ export async function interactive_em_image(smiles_text, _unused) {
       var sym = atomSymbol(a);
       if (!sym) continue;
       if (mapZ[sym] != null) continue;
-      var z = a && Number.isFinite(a.Z) ? (a.Z | 0) : null;
+      var z = a && Number.isFinite(a.Z) ? a.Z | 0 : null;
       mapZ[sym] = z;
       mapAtom[sym] = a;
       out.push(sym);
@@ -370,7 +480,8 @@ export async function interactive_em_image(smiles_text, _unused) {
     out.sort(function (a, b) {
       var za = mapZ[a];
       var zb = mapZ[b];
-      if (Number.isFinite(za) && Number.isFinite(zb) && za !== zb) return za - zb;
+      if (Number.isFinite(za) && Number.isFinite(zb) && za !== zb)
+        return za - zb;
       if (Number.isFinite(za) && !Number.isFinite(zb)) return -1;
       if (!Number.isFinite(za) && Number.isFinite(zb)) return 1;
       return String(a).localeCompare(String(b));
@@ -406,7 +517,8 @@ export async function interactive_em_image(smiles_text, _unused) {
 
       var syms = [];
       for (var k in _elemPreviewQueueSyms) {
-        if (Object.prototype.hasOwnProperty.call(_elemPreviewQueueSyms, k)) syms.push(k);
+        if (Object.prototype.hasOwnProperty.call(_elemPreviewQueueSyms, k))
+          syms.push(k);
       }
       _elemPreviewQueueSyms = Object.create(null);
       for (var i = 0; i < syms.length; i++) renderElementPreview(syms[i]);
@@ -416,7 +528,8 @@ export async function interactive_em_image(smiles_text, _unused) {
   function renderAllElementPreviews() {
     if (!elemOvDetails || !elemOvDetails.open) return;
     if (!_elemList || !_elemList.length) return;
-    for (var i = 0; i < _elemList.length; i++) renderElementPreview(_elemList[i]);
+    for (var i = 0; i < _elemList.length; i++)
+      renderElementPreview(_elemList[i]);
   }
 
   function renderElementPreview(sym) {
@@ -436,7 +549,7 @@ export async function interactive_em_image(smiles_text, _unused) {
 
     // Representative Z (best effort)
     var repr = _elemReprAtoms ? _elemReprAtoms[sym] : null;
-    var Z = repr && Number.isFinite(repr.Z) ? (repr.Z | 0) : (_SYM2Z[sym] || 6);
+    var Z = repr && Number.isFinite(repr.Z) ? repr.Z | 0 : _SYM2Z[sym] || 6;
     if (!Number.isFinite(Z) || Z <= 0) Z = 6;
 
     // Preview zoom: keep within a visible band
@@ -472,15 +585,19 @@ export async function interactive_em_image(smiles_text, _unused) {
       background_gray: getBackgroundGray(),
       invert: cbInvert ? !!cbInvert.checked : false,
       noise_stddev:
-        cbNoise && cbNoise.checked && rngNoise ? parseFloat(rngNoise.value) : 0.0,
+        cbNoise && cbNoise.checked && rngNoise
+          ? parseFloat(rngNoise.value)
+          : 0.0,
       contrast: rngContrast ? parseFloat(rngContrast.value) : 1.0,
       compose_mode: "sum",
       draw_bonds_flag: false,
       camera: cam,
       bond_wave_width_px: rngBwidth ? parseFloat(rngBwidth.value) : 6,
       bond_wave_amplitude: rngBamp ? parseFloat(rngBamp.value) : 0.4,
-      low_clip: tbClipLo && tbClipLo.value !== "" ? parseFloat(tbClipLo.value) : null,
-      high_clip: tbClipHi && tbClipHi.value !== "" ? parseFloat(tbClipHi.value) : null,
+      low_clip:
+        tbClipLo && tbClipLo.value !== "" ? parseFloat(tbClipLo.value) : null,
+      high_clip:
+        tbClipHi && tbClipHi.value !== "" ? parseFloat(tbClipHi.value) : null,
       focal_z: 0,
       dof_strength: rngDof ? parseFloat(rngDof.value) : 0.0,
       hide_front: false,
@@ -510,7 +627,8 @@ export async function interactive_em_image(smiles_text, _unused) {
     _elemList = elements.slice(0);
 
     // Clear
-    while (elemOvTableWrap.firstChild) elemOvTableWrap.removeChild(elemOvTableWrap.firstChild);
+    while (elemOvTableWrap.firstChild)
+      elemOvTableWrap.removeChild(elemOvTableWrap.firstChild);
 
     _elemPreviewCanvasBySym = Object.create(null);
 
@@ -540,7 +658,10 @@ export async function interactive_em_image(smiles_text, _unused) {
       inp.step = "0.1";
       inp.min = "0.2";
 
-      var cur = elementOverrides && elementOverrides[sym] ? elementOverrides[sym] : null;
+      var cur =
+        elementOverrides && elementOverrides[sym]
+          ? elementOverrides[sym]
+          : null;
       var v = 1.0;
       if (cur && field === "size" && Number.isFinite(cur.size)) v = cur.size;
       if (cur && field === "dark" && Number.isFinite(cur.dark)) v = cur.dark;
@@ -552,7 +673,8 @@ export async function interactive_em_image(smiles_text, _unused) {
         inp.value = String(vv);
 
         if (!elementOverrides) elementOverrides = {};
-        if (!elementOverrides[sym]) elementOverrides[sym] = { size: 1.0, dark: 1.0 };
+        if (!elementOverrides[sym])
+          elementOverrides[sym] = { size: 1.0, dark: 1.0 };
         elementOverrides[sym][field] = vv;
 
         scheduleRender(); // rerender only (no rebuild/parsing)
@@ -600,7 +722,6 @@ export async function interactive_em_image(smiles_text, _unused) {
     // Previews: rerender when panel is open
     scheduleElemPreviewAll();
   }
-
 
   function clampInt(n, lo, hi, fallback) {
     var v = parseInt(n, 10);
@@ -798,15 +919,15 @@ export async function interactive_em_image(smiles_text, _unused) {
       kind: "smiles",
       smiles: "c1ccccc1",
     },
-    "file:UAsSe.cif": {
+    "file:Graphite.cif": {
       kind: "file",
-      path: "./samples/UAsSe.cif",
-      name: "UAsSe.cif",
+      path: "./samples/Graphite.cif",
+      name: "Graphite.cif",
     },
-    "file:UAsSe.poscar": {
+    "file:Corundum.poscar": {
       kind: "file",
-      path: "./samples/UAsSe.poscar",
-      name: "UAsSe.poscar",
+      path: "./samples/Corundum.poscar",
+      name: "Corundum.poscar",
     },
     "file:pdb4hhb.ent": {
       kind: "file",
@@ -1313,7 +1434,6 @@ export async function interactive_em_image(smiles_text, _unused) {
       // silent
     }
 
-
     // focal_z from atoms
     var focus_norm = rngFocus ? parseFloat(rngFocus.value) : 0.5;
     if (!Number.isFinite(focus_norm)) focus_norm = 0.5;
@@ -1649,7 +1769,6 @@ export async function interactive_em_image(smiles_text, _unused) {
     return out;
   }
 
-
   function buildFullOverridesForExport() {
     var out = {};
     // Export a FULL config: include all periodic table elements.
@@ -1658,7 +1777,10 @@ export async function interactive_em_image(smiles_text, _unused) {
       for (var Z = 1; Z < _Z2SYM.length; Z++) {
         var sym = _Z2SYM[Z];
         if (!sym) continue;
-        var it = elementOverrides && elementOverrides[sym] ? elementOverrides[sym] : null;
+        var it =
+          elementOverrides && elementOverrides[sym]
+            ? elementOverrides[sym]
+            : null;
         var sz = it && Number.isFinite(it.size) ? it.size : 1.0;
         var dk = it && Number.isFinite(it.dark) ? it.dark : 1.0;
         out[sym] = { size: sz, dark: dk };
@@ -1667,11 +1789,18 @@ export async function interactive_em_image(smiles_text, _unused) {
     // Preserve any extra keys (non-periodic pseudo-elements) if present.
     if (elementOverrides) {
       for (var k in elementOverrides) {
-        if (!Object.prototype.hasOwnProperty.call(elementOverrides, k)) continue;
+        if (!Object.prototype.hasOwnProperty.call(elementOverrides, k))
+          continue;
         if (out[k]) continue;
         var it2 = elementOverrides[k];
-        var sz2 = it2 && typeof it2 === "object" && Number.isFinite(it2.size) ? it2.size : 1.0;
-        var dk2 = it2 && typeof it2 === "object" && Number.isFinite(it2.dark) ? it2.dark : 1.0;
+        var sz2 =
+          it2 && typeof it2 === "object" && Number.isFinite(it2.size)
+            ? it2.size
+            : 1.0;
+        var dk2 =
+          it2 && typeof it2 === "object" && Number.isFinite(it2.dark)
+            ? it2.dark
+            : 1.0;
         out[k] = { size: sz2, dark: dk2 };
       }
     }
@@ -1687,7 +1816,10 @@ export async function interactive_em_image(smiles_text, _unused) {
       var text = JSON.stringify(payload, null, 2);
       var blob = new Blob([text], { type: "application/json" });
       var a = document.createElement("a");
-      a.download = tr("ui.elemOverrides.exportName", "scigentem_overrides.json");
+      a.download = tr(
+        "ui.elemOverrides.exportName",
+        "scigentem_overrides.json",
+      );
       a.href = URL.createObjectURL(blob);
       a.click();
       setTimeout(function () {
@@ -1703,7 +1835,8 @@ export async function interactive_em_image(smiles_text, _unused) {
   function importOverridesFromObject(obj) {
     if (!obj || typeof obj !== "object") return;
 
-    var raw = obj.overrides && typeof obj.overrides === "object" ? obj.overrides : null;
+    var raw =
+      obj.overrides && typeof obj.overrides === "object" ? obj.overrides : null;
     if (!raw) return;
 
     // Merge into elementOverrides (keep unknown elements; UI shows only current ones)
@@ -1718,7 +1851,8 @@ export async function interactive_em_image(smiles_text, _unused) {
       if (it.size != null) sz = clampMul(it.size, 0.2, null);
       if (it.dark != null) dk = clampMul(it.dark, 0.2, null);
 
-      if (!elementOverrides[sym]) elementOverrides[sym] = { size: 1.0, dark: 1.0 };
+      if (!elementOverrides[sym])
+        elementOverrides[sym] = { size: 1.0, dark: 1.0 };
       elementOverrides[sym].size = sz;
       elementOverrides[sym].dark = dk;
     }
@@ -1772,9 +1906,14 @@ export async function interactive_em_image(smiles_text, _unused) {
   }
   if (fileElemOvImport) {
     fileElemOvImport.addEventListener("change", async function () {
-      var f = fileElemOvImport.files && fileElemOvImport.files.length ? fileElemOvImport.files[0] : null;
+      var f =
+        fileElemOvImport.files && fileElemOvImport.files.length
+          ? fileElemOvImport.files[0]
+          : null;
       // reset input so same file can be re-imported
-      try { fileElemOvImport.value = ""; } catch (e0) {}
+      try {
+        fileElemOvImport.value = "";
+      } catch (e0) {}
 
       if (!f) return;
 
@@ -1786,7 +1925,6 @@ export async function interactive_em_image(smiles_text, _unused) {
       }
     });
   }
-
 
   // GIF controls
   if (btnGifStart) {
@@ -1909,7 +2047,9 @@ export async function interactive_em_image(smiles_text, _unused) {
       updateGifUI();
       updateModeDescText();
       updateBondsLabelText();
-      try { rebuildElementOverridesTable(_elemList || []); } catch (e) {}
+      try {
+        rebuildElementOverridesTable(_elemList || []);
+      } catch (e) {}
     });
   } catch (e) {}
 

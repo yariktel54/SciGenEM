@@ -773,7 +773,7 @@
       <div class="top_container">
         <div class="qr">
           <img
-            src="./img_web/qr.png"
+            src="./qr.png"
             style="width: 100%; max-width: 100px; margin: 0px 10px 0px"
             alt=""
             onerror="this.style.visibility = 'hidden'"
@@ -783,19 +783,19 @@
           <h1 style="margin: auto 0px 0px" id="pageTitle">
             SciGenTEM Візуалізатор
           </h1>
+          <div class="header_help_row">
+            <a
+              href="./help.html?lang=ua"
+              id="helpTitle"
+              class="header_help_link"
+            ></a>
+          </div>
         </div>
         <div class="lang_container">
           <a class="lang_link" id="switchLangUA">UA</a>
           <p class="lang_link">|</p>
           <a class="lang_link" id="switchLangEN">ENG</a>
         </div>
-      </div>
-      <div class="header_help_row">
-        <a
-          href="./help.html?lang=ua"
-          id="helpTitle"
-          class="header_help_link"
-        ></a>
       </div>
     </header>
 
@@ -837,11 +837,11 @@
                     id="sample-group-crystals"
                     label="Кристали (CIF/POSCAR)"
                   >
-                    <option id="sampleUAsSeCif" value="file:UAsSe.cif">
-                      UAsSe (CIF)
+                    <option id="sampleUAsSeCif" value="file:Graphite.cif">
+                      Graphite (CIF)
                     </option>
-                    <option id="sampleUAsSePoscar" value="file:UAsSe.poscar">
-                      UAsSe (POSCAR)
+                    <option id="sampleUAsSePoscar" value="file:Corundum.poscar">
+                      Corundum (POSCAR)
                     </option>
                   </optgroup>
                   <optgroup id="sample-group-proteins" label="Білки (PDB/ENT)">
@@ -1256,11 +1256,7 @@
             <div class="muted" id="lbl-gif-status"></div>
 
             <div class="canvas_meta">
-              <div class="small_links">
-                <a href="./help.html?lang=ua" id="helpLink"
-                  >Інструкція та формати</a
-                >
-              </div>
+              <div class="small_links"></div>
               <div class="muted" id="lbl-title"></div>
             </div>
           </div>

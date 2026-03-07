@@ -1,540 +1,1046 @@
 <!doctype html>
 <html lang="uk">
-<head>
-  <meta charset="utf-8" />
-  <title id="title">SciGenTEM Visualizer — Help</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" type="image/x-icon" href="./img_web/favicon.ico" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
-      color: #333;
-      line-height: 1.6;
-      margin: 0;
-      padding: 0;
-    }
+  <head>
+    <meta charset="utf-8" />
+    <title id="title">SciGenTEM Visualizer — Help</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="./img_web/favicon.ico" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        color: #333;
+        line-height: 1.6;
+        margin: 0;
+        padding: 0;
+      }
 
-    .container {
-      max-width: 1080px;
-      margin: 0 auto;
-      padding: 20px;
-    }
+      .container {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 20px;
+      }
 
-    header {
-      background-color: #4CAF50;
-      color: white;
-      padding: 20px 0;
-      text-align: center;
-    }
+      header {
+        background-color: #4caf50;
+        color: white;
+        padding: 20px 0;
+        text-align: center;
+      }
 
-    .top_container {
-      display: flex;
-      justify-content: space-between;
-    }
+      .top_container {
+        display: flex;
+        justify-content: space-between;
+      }
 
-    .header_link {
-      margin: 5px;
-      font-size: 15px;
-      color: white;
-      text-decoration: none;
-    }
+      .header_link {
+        margin: 5px;
+        font-size: 15px;
+        color: white;
+        text-decoration: none;
+      }
 
-    .lang_link {
-      margin: 5px;
-      font-size: 15px;
-      color: white;
-      text-decoration: none;
-      cursor: pointer;
-      user-select: none;
-    }
+      .lang_link {
+        margin: 5px;
+        font-size: 15px;
+        color: white;
+        text-decoration: none;
+        cursor: pointer;
+        user-select: none;
+      }
 
-    .lang_container {
-      padding: 0px 10px 0px 0px;
-      width: auto;
-      display: flex;
-      justify-content: end;
-      align-items: center;
-    }
+      .lang_container {
+        padding: 0px 10px 0px 0px;
+        width: auto;
+        display: flex;
+        justify-content: end;
+        align-items: center;
+      }
 
-    .main-block {
-      background-color: #ffffff;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
+      .main-block {
+        background-color: #ffffff;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
 
-    .instructions {
-      background-color: #e7f5fe;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
+      .instructions {
+        background-color: #e7f5fe;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
 
-    .download-block {
-      background-color: #e7ffe7;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
+      .download-block {
+        background-color: #e7ffe7;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
 
-    .links-block {
-      background-color: #f9f9f9;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
+      .links-block {
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
 
-    .help_text p, .help_text li, .help_text dd { font-size: 16px; }
-    .help_text dt { font-size: 16px; font-weight: bold; }
+      .help_text p,
+      .help_text li,
+      .help_text dd {
+        font-size: 16px;
+      }
+      .help_text dt {
+        font-size: 16px;
+        font-weight: bold;
+      }
 
-    /* Examples: 10 separate code slots */
-    .codegrid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 10px;
-      margin-top: 8px;
-    }
+      /* Examples: 10 separate code slots */
+      .codegrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 10px;
+        margin-top: 8px;
+      }
 
-    .codebox {
-      margin: 0;
-      background: #f7f7f7;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      padding: 10px;
-      min-height: 42px;
-      overflow: auto;
-    }
+      .codebox {
+        margin: 0;
+        background: #f7f7f7;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 10px;
+        min-height: 42px;
+        overflow: auto;
+      }
 
-    .muted { color: #666; }
+      .muted {
+        color: #666;
+      }
 
-    @media (max-width: 900px) {
-      .container { padding: 10px; }
-      h1 { font-size: 20px; }
-      .lang_link { font-size: 17px; }
-      .header_link { font-size: 12px; }
-    }
-  </style>
-
-  <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    function getQueryParam(param) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(param);
-    }
-
-    let currentLang = getQueryParam("lang") || localStorage.getItem("lang") || "ua";
-
-    function updateURL(lang) {
-      const urlParams = new URLSearchParams(window.location.search);
-      urlParams.set("lang", lang);
-      window.history.replaceState({}, "", `${window.location.pathname}?${urlParams.toString()}`);
-    }
-
-    function updateLinksLanguage(lang) {
-      const links = document.querySelectorAll("a[href]");
-      links.forEach(link => {
-        const href = link.getAttribute("href") || "";
-        if (href.includes("lang=")) {
-          link.setAttribute("href", href.replace(/lang=(ua|en)/, `lang=${lang}`));
+      @media (max-width: 900px) {
+        .container {
+          padding: 10px;
         }
+        h1 {
+          font-size: 20px;
+        }
+        .lang_link {
+          font-size: 17px;
+        }
+        .header_link {
+          font-size: 12px;
+        }
+      }
+    </style>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        function getQueryParam(param) {
+          const urlParams = new URLSearchParams(window.location.search);
+          return urlParams.get(param);
+        }
+
+        let currentLang =
+          getQueryParam("lang") || localStorage.getItem("lang") || "ua";
+
+        function updateURL(lang) {
+          const urlParams = new URLSearchParams(window.location.search);
+          urlParams.set("lang", lang);
+          window.history.replaceState(
+            {},
+            "",
+            `${window.location.pathname}?${urlParams.toString()}`,
+          );
+        }
+
+        function updateLinksLanguage(lang) {
+          const links = document.querySelectorAll("a[href]");
+          links.forEach((link) => {
+            const href = link.getAttribute("href") || "";
+            if (href.includes("lang=")) {
+              link.setAttribute(
+                "href",
+                href.replace(/lang=(ua|en)/, `lang=${lang}`),
+              );
+            }
+          });
+        }
+
+        function applyTranslations(translations, lang) {
+          const dict = translations && translations[lang];
+          if (!dict) return;
+
+          if (dict["title"]) document.title = dict["title"];
+
+          Object.keys(dict).forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const val = dict[id];
+            el.textContent = val;
+          });
+
+          updateLinksLanguage(lang);
+        }
+
+        function loadTranslations(lang) {
+          fetch("translations.json")
+            .then((res) => res.json())
+            .then((translations) => applyTranslations(translations, lang))
+            .catch(() => {
+              /* silent */
+            });
+        }
+
+        function switchLanguage(lang) {
+          localStorage.setItem("lang", lang);
+          updateURL(lang);
+          loadTranslations(lang);
+        }
+
+        document
+          .getElementById("switchLangUA")
+          ?.addEventListener("click", function (e) {
+            e.preventDefault();
+            switchLanguage("ua");
+          });
+
+        document
+          .getElementById("switchLangEN")
+          ?.addEventListener("click", function (e) {
+            e.preventDefault();
+            switchLanguage("en");
+          });
+
+        updateURL(currentLang);
+        loadTranslations(currentLang);
       });
-    }
+    </script>
+  </head>
 
-    function applyTranslations(translations, lang) {
-      const dict = translations && translations[lang];
-      if (!dict) return;
-
-      if (dict["title"]) document.title = dict["title"];
-
-      Object.keys(dict).forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const val = dict[id];
-        el.textContent = val;
-      });
-
-      updateLinksLanguage(lang);
-    }
-
-    function loadTranslations(lang) {
-      fetch("translations.json")
-        .then(res => res.json())
-        .then(translations => applyTranslations(translations, lang))
-        .catch(() => { /* silent */ });
-    }
-
-    function switchLanguage(lang) {
-      localStorage.setItem("lang", lang);
-      updateURL(lang);
-      loadTranslations(lang);
-    }
-
-    document.getElementById("switchLangUA")?.addEventListener("click", function (e) {
-      e.preventDefault();
-      switchLanguage("ua");
-    });
-
-    document.getElementById("switchLangEN")?.addEventListener("click", function (e) {
-      e.preventDefault();
-      switchLanguage("en");
-    });
-
-    updateURL(currentLang);
-    loadTranslations(currentLang);
-  });
-  </script>
-</head>
-
-<body>
-  <header>
-    <div class="top_container">
-      <div>
-        <a class="header_link" href="./index.html?lang=ua" id="hdrBack" style="margin-left:10px;">← Візуалізатор</a>
+  <body>
+    <header>
+      <div class="top_container">
+        <div>
+          <a
+            class="header_link"
+            href="./index.html?lang=ua"
+            id="hdrBack"
+            style="margin-left: 10px"
+            >← Візуалізатор</a
+          >
+        </div>
+        <div>
+          <h1 style="margin: auto 0px 0px" id="helpTitle">
+            SciGenTEM Візуалізатор — Інструкція
+          </h1>
+        </div>
+        <div class="lang_container">
+          <a class="lang_link" id="switchLangUA">UA</a>
+          <p class="lang_link">|</p>
+          <a class="lang_link" id="switchLangEN">ENG</a>
+        </div>
       </div>
-      <div>
-        <h1 style="margin: auto 0px 0px" id="helpTitle">SciGenTEM Візуалізатор — Інструкція</h1>
-      </div>
-      <div class="lang_container">
-        <a class="lang_link" id="switchLangUA">UA</a>
-        <p class="lang_link"> | </p>
-        <a class="lang_link" id="switchLangEN">ENG</a>
-      </div>
-    </div>
-  </header>
+    </header>
 
-  <div class="container">
-
-    <!-- HOW TO USE -->
-    <div class="main-block">
-      <h2 id="hHow">Як користуватись</h2>
-      <ol class="help_text">
-        <li id="hHow1">SMILES: встав рядок у поле SMILES та натисни Enter.</li>
-        <li id="hHow2">Файли: завантаж або перетягни .cif на сторінку візуалізатора.</li>
-        <li id="hHow3">Для CIF за потреби введи Tiles (наприклад 2x2x1).</li>
-      </ol>
-    </div>
-
-    <!-- INPUT FORMATS -->
-    <div class="links-block">
-      <h2 id="formatsTitle">Формати вводу</h2>
-      <p class="help_text" id="formatsIntro">
-        Нижче описано, що саме очікується від кожного формату і які практичні нюанси важливі саме для TEM‑подібної візуалізації.
-      </p>
-
-      <h3 id="fmtSmilesTitle">SMILES (рядок)</h3>
-      <ul class="help_text">
-        <li id="fmtSmiles1">Підходить для молекул та іонних систем.</li>
-        <li id="fmtSmiles2">Топологія (зв’язки) задана у SMILES.</li>
-        <li id="fmtSmiles3">Координати генеруються через RDKit (WASM) у браузері.</li>
-        <li id="fmtSmiles4">Зручний варіант для швидких тестів, порівнянь і демонстрацій.</li>
-      </ul>
-
-      <h3 id="fmtCifTitle">CIF (.cif / текст)</h3>
-      <ul class="help_text">
-        <li id="fmtCif1">Підходить для кристалів і періодичних структур (unit cell + координати атомів).</li>
-        <li id="fmtCif2">Може містити дробові або декартові координати.</li>
-        <li id="fmtCif3">Часто не містить “хімічних” зв’язків — це нормально для кристалічних даних.</li>
-        <li id="fmtCif4">За потреби структура повторюється через Tiles (напр., 2x2x1, 3x3x2).</li>
-      </ul>
-
-      <h3 id="fmtPlannedTitle">Заплановані формати</h3>
-      <ul class="help_text">
-        <li id="fmtPlanned1">.mol / .sdf — малі молекули (часто з баз даних), можуть містити 2D/3D координати.</li>
-        <li id="fmtPlanned2">.pdb / mmCIF — біомакромолекули та комплекси (білки, ДНК/РНК, ліганди).</li>
-        <li id="fmtPlanned3">POSCAR, .xyz, .json — наукові/обмінні формати для матеріалів і симуляцій.</li>
-      </ul>
-
-      <p class="help_text muted" id="fmtNote">
-        Нотатка: у структурних форматах (особливо CIF) зв’язки можуть бути відсутні або не збігатися з “молекульним” уявленням.
-        У цьому симуляторі зв’язки — допоміжний шар візуалізації, а не “істина” хімії.
-      </p>
-    </div>
-
-    <!-- CONTROLS -->
-    <div class="instructions">
-      <h2 id="controlsTitle">Пояснення елементів керування (як у index.html)</h2>
-      <p class="help_text" id="controlsIntro">
-        Регулятори змінюють вигляд TEM‑подібного зображення (контраст, фон, шум, розфокус), але не “переписують” саму структуру.
-      </p>
-
-      <h3 id="controlsMoveTitle">Переміщення/обертання</h3>
-      <ul class="help_text">
-        <li id="controlsMove1">↑ ↓ ← → — панорамування (зсув) в’юхи по площині кадру.</li>
-        <li id="controlsMove2">⟲ / ⟳ — обертання “столика” (в’юхи) навколо центру сцени.</li>
-        <li id="controlsMove3">Reset — скидання позиції/обертання у базовий стан.</li>
-        <li id="controlsMove4">X90 / Y90 — поворот самої структури на 90° (щоб “перевернути” об’єкт на інший бік).</li>
-      </ul>
-
-      <h3 id="controlsTogglesTitle">Перемикачі</h3>
-      <dl class="help_text">
-        <dt id="tInvTitle">Інверсія (cb-invert)</dt>
-        <dd id="tInvDesc">Інвертує яскравості: темне стає світлим і навпаки.</dd>
-
-        <dt id="tNoiseTitle">Шум (cb-noise)</dt>
-        <dd id="tNoiseDesc">Вмикає додавання шуму детектора. Сила задається слайдером “Шум (σ)”.</dd>
-
-        <dt id="tBondsTitle">Зв’язки (cb-bonds)</dt>
-        <dd id="tBondsDesc">Показує/ховає зв’язки між атомами. У CIF зв’язків може не бути.</dd>
-
-        <dt id="tHideFrontTitle">Ховати передні шари при розфокусі (cb-hidefront)</dt>
-        <dd id="tHideFrontDesc">Допоміжний режим для DoF: може ховати те, що “перед” фокусом, щоб шари менше перекривалися.</dd>
-
-        <dt id="tScaleTitle">Масштаб (cb-scale)</dt>
-        <dd id="tScaleDesc">Показує/ховає масштабну лінійку (якщо вона ввімкнена у рендері).</dd>
-      </dl>
-
-      <h3 id="controlsSlidersTitle">Слайдери</h3>
-      <dl class="help_text">
-        <dt id="sZoomTitle">Å/pix (rng-zoom)</dt>
-        <dd id="sZoomDesc">Зум у фізичних одиницях. Менше — наблизити, більше — віддалити.</dd>
-
-        <dt id="sContrastTitle">Контраст (rng-contrast)</dt>
-        <dd id="sContrastDesc">Підсилює різницю між темними й світлими ділянками.</dd>
-
-        <dt id="sBlurTitle">Розмиття (σ) (rng-blur)</dt>
-        <dd id="sBlurDesc">Загальне після-розмиття фінального зображення.</dd>
-
-        <dt id="sBgTitle">Фон (0–255) (rng-bg)</dt>
-        <dd id="sBgDesc">Сірість фону: 0 — чорний, 127 — нейтральний, 255 — білий.</dd>
-
-        <dt id="sNoiseTitle">Шум (σ) (rng-noise)</dt>
-        <dd id="sNoiseDesc">Сила шуму. Має сенс, якщо ввімкнений перемикач “Шум”.</dd>
-
-        <dt id="sFocusTitle">Фокус Z (норм.) (rng-focus)</dt>
-        <dd id="sFocusDesc">Положення фокусу по глибині (нормалізовано). Використовується разом із DoF.</dd>
-
-        <dt id="sDofTitle">Розфокус (Å⁻¹) (rng-dof)</dt>
-        <dd id="sDofDesc">Сила різного розмиття шарів по глибині.</dd>
-
-        <dt id="sBwidthTitle">Ширина дуги (px) (rng-bwidth)</dt>
-        <dd id="sBwidthDesc">Візуальна ширина “перешийків/дуг” зв’язків.</dd>
-
-        <dt id="sBampTitle">Висота дуги (rng-bamp)</dt>
-        <dd id="sBampDesc">Амплітуда “хвилі” зв’язку (стилізація зв’язків).</dd>
-      </dl>
-
-      <h3 id="controlsInputsTitle">Поля вводу та кнопки</h3>
-      <dl class="help_text">
-        <dt id="iClipTitle">Підлога/Стеля яскравості (tb-clip-lo / tb-clip-hi)</dt>
-        <dd id="iClipDesc">Обрізання діапазону яскравості після рендера.</dd>
-
-        <dt id="iTilesTitle">Tiles (tb-tiles)</dt>
-        <dd id="iTilesDesc">Повторення комірки для періодичних структур: 2x2x1, 3x3x2 тощо.</dd>
-
-        <dt id="iSmilesTitle">SMILES (tb-smiles)</dt>
-        <dd id="iSmilesDesc">Рядок SMILES. Enter запускає перебудову та рендер.</dd>
-
-        <dt id="iFileTitle">Завантажити файл (.cif) (file-input)</dt>
-        <dd id="iFileDesc">Локальне завантаження. Також працює drag&drop на сторінку.</dd>
-
-        <dt id="iSizeTitle">Ширина/Висота (tb-w / tb-h)</dt>
-        <dd id="iSizeDesc">Розмір canvas. Впливає на детальність та швидкість.</dd>
-
-        <dt id="iExportTitle">Експортувати PNG (btn-export)</dt>
-        <dd id="iExportDesc">Зберігає поточне зображення в PNG.</dd>
-
-        <dt id="iLblTitle">lbl-title</dt>
-        <dd id="iLblDesc">Назва/ідентифікація поточного об’єкта (якщо є в даних).</dd>
-      </dl>
-
-      <h3 id="helpExtraSettingsTitle">Додаткові налаштування</h3>
-      <ul class="help_text">
-        <li id="helpExtraSettings1">Element overrides: множники Size×/Darkness× для кожного елемента (H, O, C…).</li>
-        <li id="helpExtraSettings2">Прев’ю показує один атом з поточними ефектами (без шарів і без зв’язків).</li>
-        <li id="helpExtraSettings3">Експорт/імпорт зберігає JSON з overrides.</li>
-      </ul>
-    </div>
-
-    <!-- EXAMPLES -->
-    <div class="main-block">
-      <h2 id="examplesTitle">Приклади</h2>
-
-      <h3 id="examplesSmilesTitle">SMILES — 10 слотів</h3>
-      <p class="help_text" id="examplesSmilesInstr">Встав у поле SMILES та натисни Enter.</p>
-      <div class="codegrid" aria-label="SMILES slots">
-        <pre class="codebox"><code>Cn1cnc2n(C)c(=O)n(C)c(=O)c12</code></pre>
-        <pre class="codebox"><code>c1ccccc1</code></pre>
-        <pre class="codebox"><code>CCO</code></pre>
-        <pre class="codebox"><code>NCC(=O)O</code></pre>
-        <pre class="codebox"><code>CC(=O)O</code></pre>
-        <pre class="codebox"><code>CC(=O)C</code></pre>
-        <pre class="codebox"><code>CC(=O)Oc1ccccc1C(=O)O</code></pre>
-        <pre class="codebox"><code>OCC1OC(O)C(O)C(O)C1O</code></pre>
-        <pre class="codebox"><code>CN1CCC[C@H]1c2cccnc2</code></pre>
-        <pre class="codebox"><code>CC(C)CCCC(C)C1CCC2C1(CCC3C2CC=C4C3(CCC(C4)O)C)C</code></pre>
+    <div class="container">
+      <!-- HOW TO USE -->
+      <div class="main-block">
+        <h2 id="hHow">Як користуватись</h2>
+        <ol class="help_text">
+          <li id="hHow1">
+            SMILES: встав рядок у поле SMILES та натисни Enter.
+          </li>
+          <li id="hHow2">
+            Файли: завантаж або перетягни .cif на сторінку візуалізатора.
+          </li>
+          <li id="hHow3">
+            Для періодичних структур (CIF/POSCAR/JSON) за потреби введи Tiles
+            (наприклад 2x2x1).
+          </li>
+        </ol>
       </div>
 
-      <h3 style="margin-top:18px;" id="examplesFilesTitle">Файли прикладів</h3>
-      <p class="help_text" id="examplesFilesInstr">Натисни на посилання, або перетягни файл на сторінку (drag&drop).</p>
+      <!-- INPUT FORMATS -->
+      <div class="links-block">
+        <h2 id="formatsTitle">Формати вводу</h2>
+        <p class="help_text" id="formatsIntro">
+          Нижче описано, що саме очікується від кожного формату і які практичні
+          нюанси важливі саме для TEM‑подібної візуалізації.
+        </p>
 
-      <h4 id="exCifTitle">CIF (кристали)</h4>
-      <ul class="help_text">
-        <li><a href="./data/cif/example01.cif">example01.cif</a></li>
-        <li><a href="./data/cif/example02.cif">example02.cif</a></li>
-        <li><a href="./data/cif/example03.cif">example03.cif</a></li>
-        <li><a href="./data/cif/example04.cif">example04.cif</a></li>
-        <li><a href="./data/cif/example05.cif">example05.cif</a></li>
-        <li><a href="./data/cif/example06.cif">example06.cif</a></li>
-        <li><a href="./data/cif/example07.cif">example07.cif</a></li>
-        <li><a href="./data/cif/example08.cif">example08.cif</a></li>
-        <li><a href="./data/cif/example09.cif">example09.cif</a></li>
-        <li><a href="./data/cif/example10.cif">example10.cif</a></li>
-      </ul>
+        <h3 id="fmtSmilesTitle">SMILES (рядок)</h3>
+        <ul class="help_text">
+          <li id="fmtSmiles1">Підходить для молекул та іонних систем.</li>
+          <li id="fmtSmiles2">Топологія (зв’язки) задана у SMILES.</li>
+          <li id="fmtSmiles3">
+            Координати генеруються через RDKit (WASM) у браузері.
+          </li>
+          <li id="fmtSmiles4">
+            Зручний варіант для швидких тестів, порівнянь і демонстрацій.
+          </li>
+        </ul>
 
-      <h4 id="exPoscarTitle">POSCAR</h4>
-      <ul class="help_text">
-        <li><a href="./data/poscar/POSCAR_01">POSCAR_01</a></li>
-        <li><a href="./data/poscar/POSCAR_02">POSCAR_02</a></li>
-        <li><a href="./data/poscar/POSCAR_03">POSCAR_03</a></li>
-        <li><a href="./data/poscar/POSCAR_04">POSCAR_04</a></li>
-        <li><a href="./data/poscar/POSCAR_05">POSCAR_05</a></li>
-        <li><a href="./data/poscar/POSCAR_06">POSCAR_06</a></li>
-        <li><a href="./data/poscar/POSCAR_07">POSCAR_07</a></li>
-        <li><a href="./data/poscar/POSCAR_08">POSCAR_08</a></li>
-        <li><a href="./data/poscar/POSCAR_09">POSCAR_09</a></li>
-        <li><a href="./data/poscar/POSCAR_10">POSCAR_10</a></li>
-      </ul>
+        <h3 id="fmtCifTitle">CIF (.cif / текст)</h3>
+        <ul class="help_text">
+          <li id="fmtCif1">
+            Підходить для кристалів і періодичних структур (unit cell +
+            координати атомів).
+          </li>
+          <li id="fmtCif2">Може містити дробові або декартові координати.</li>
+          <li id="fmtCif3">
+            Часто не містить “хімічних” зв’язків — це нормально для кристалічних
+            даних.
+          </li>
+          <li id="fmtCif4">
+            За потреби структура повторюється через Tiles (напр., 2x2x1, 3x3x2).
+          </li>
+        </ul>
 
-      <h4 id="exJsonTitle">JSON</h4>
-      <ul class="help_text">
-        <li><a href="./data/json/example01.json">example01.json</a></li>
-        <li><a href="./data/json/example02.json">example02.json</a></li>
-        <li><a href="./data/json/example03.json">example03.json</a></li>
-        <li><a href="./data/json/example04.json">example04.json</a></li>
-        <li><a href="./data/json/example05.json">example05.json</a></li>
-        <li><a href="./data/json/example06.json">example06.json</a></li>
-        <li><a href="./data/json/example07.json">example07.json</a></li>
-        <li><a href="./data/json/example08.json">example08.json</a></li>
-        <li><a href="./data/json/example09.json">example09.json</a></li>
-        <li><a href="./data/json/example10.json">example10.json</a></li>
-      </ul>
+        <h3 id="fmtMolTitle">MOL / SDF (.mol / .sdf)</h3>
+        <ul class="help_text">
+          <li id="fmtMol1">
+            Підходить для малих молекул (органіка, фарм-ліганди), часто з баз
+            даних.
+          </li>
+          <li id="fmtMol2">
+            Містить явні зв’язки: якщо вони задані — використовуються як є
+            (guess не застосовується).
+          </li>
+          <li id="fmtMol3">
+            Координати можуть бути 2D або 3D; для 2D Z приймається 0 (для DoF це
+            ок).
+          </li>
+          <li id="fmtMol4">
+            Найкращий формат, коли треба точно показати топологію зв’язків.
+          </li>
+        </ul>
 
-      <h4 id="exPdbTitle">PDB</h4>
-      <ul class="help_text">
-        <li><a href="./data/pdb/example01.pdb">example01.pdb</a></li>
-        <li><a href="./data/pdb/example02.pdb">example02.pdb</a></li>
-        <li><a href="./data/pdb/example03.pdb">example03.pdb</a></li>
-        <li><a href="./data/pdb/example04.pdb">example04.pdb</a></li>
-        <li><a href="./data/pdb/example05.pdb">example05.pdb</a></li>
-        <li><a href="./data/pdb/example06.pdb">example06.pdb</a></li>
-        <li><a href="./data/pdb/example07.pdb">example07.pdb</a></li>
-        <li><a href="./data/pdb/example08.pdb">example08.pdb</a></li>
-        <li><a href="./data/pdb/example09.pdb">example09.pdb</a></li>
-        <li><a href="./data/pdb/example10.pdb">example10.pdb</a></li>
-      </ul>
+        <h3 id="fmtPdbTitle">PDB (.pdb / .ent)</h3>
+        <ul class="help_text">
+          <li id="fmtPdb1">
+            Підходить для біомакромолекул і комплексів (білки, ДНК/РНК,
+            ліганди).
+          </li>
+          <li id="fmtPdb2">
+            Координати читаються з ATOM/HETATM; можливі моделі/altLoc — щоб не
+            було дублювання, береться основний варіант.
+          </li>
+          <li id="fmtPdb3">
+            Зв’язки часто відсутні: якщо є CONECT — він використовується; інакше
+            зв’язки можуть бути лише допоміжні.
+          </li>
+          <li id="fmtPdb4">
+            Файли можуть бути великими: якщо повільно — зменш canvas або вимкни
+            важкі ефекти.
+          </li>
+        </ul>
 
-      <h4 id="exMolTitle">MOL</h4>
-      <ul class="help_text">
-        <li><a href="./data/mol/example01.mol">example01.mol</a></li>
-        <li><a href="./data/mol/example02.mol">example02.mol</a></li>
-        <li><a href="./data/mol/example03.mol">example03.mol</a></li>
-        <li><a href="./data/mol/example04.mol">example04.mol</a></li>
-        <li><a href="./data/mol/example05.mol">example05.mol</a></li>
-        <li><a href="./data/mol/example06.mol">example06.mol</a></li>
-        <li><a href="./data/mol/example07.mol">example07.mol</a></li>
-        <li><a href="./data/mol/example08.mol">example08.mol</a></li>
-        <li><a href="./data/mol/example09.mol">example09.mol</a></li>
-        <li><a href="./data/mol/example10.mol">example10.mol</a></li>
-      </ul>
+        <h3 id="fmtPoscarTitle">POSCAR/CONTCAR (VASP)</h3>
+        <ul class="help_text">
+          <li id="fmtPoscar1">
+            Періодичні структури: містить вектори ґратки (cell) і координати
+            атомів (Direct/Cartesian).
+          </li>
+          <li id="fmtPoscar2">
+            Підтримує Tiles: можна повторити комірку (2x2x1, 3x3x2) щоб побачити
+            більший фрагмент кристалу.
+          </li>
+          <li id="fmtPoscar3">
+            Зв’язки зазвичай не задані — у візуалізаторі це допоміжний шар для
+            читабельності.
+          </li>
+          <li id="fmtPoscar4">
+            Зручний формат для матеріалів/симуляцій; часто йде поруч із CIF.
+          </li>
+        </ul>
 
-      <h4 id="exXyzTitle">XYZ</h4>
-      <ul class="help_text">
-        <li><a href="./data/xyz/example01.xyz">example01.xyz</a></li>
-        <li><a href="./data/xyz/example02.xyz">example02.xyz</a></li>
-        <li><a href="./data/xyz/example03.xyz">example03.xyz</a></li>
-        <li><a href="./data/xyz/example04.xyz">example04.xyz</a></li>
-        <li><a href="./data/xyz/example05.xyz">example05.xyz</a></li>
-        <li><a href="./data/xyz/example06.xyz">example06.xyz</a></li>
-        <li><a href="./data/xyz/example07.xyz">example07.xyz</a></li>
-        <li><a href="./data/xyz/example08.xyz">example08.xyz</a></li>
-        <li><a href="./data/xyz/example09.xyz">example09.xyz</a></li>
-        <li><a href="./data/xyz/example10.xyz">example10.xyz</a></li>
-      </ul>
+        <h3 id="fmtXyzTitle">XYZ (.xyz)</h3>
+        <ul class="help_text">
+          <li id="fmtXyz1">
+            Простий список атомів у декартових координатах (зазвичай у Å); добре
+            для молекул, кластерів, фрагментів.
+          </li>
+          <li id="fmtXyz2">
+            Не містить зв’язків: за потреби “Зв’язки” працюють як приблизний
+            допоміжний шар.
+          </li>
+          <li id="fmtXyz3">Не містить комірки: Tiles не застосовується.</li>
+          <li id="fmtXyz4">
+            Зручний як універсальний обмінний формат між програмами та
+            симуляціями.
+          </li>
+        </ul>
+
+        <h3 id="fmtJsonTitle">JSON (.json)</h3>
+        <ul class="help_text">
+          <li id="fmtJson1">
+            Обмінний формат: може містити atoms, bonds і/або cell (комірку).
+          </li>
+          <li id="fmtJson2">
+            Якщо є cell — це періодична структура і працює Tiles; якщо cell
+            немає — це “молекулярний” режим.
+          </li>
+          <li id="fmtJson3">
+            Якщо bonds задані — вони використовуються як є; якщо ні — зв’язки
+            можуть бути допоміжні.
+          </li>
+          <li id="fmtJson4">
+            Зручно для збереження/відтворення сцен і сумісності між різними
+            джерелами даних.
+          </li>
+        </ul>
+
+        <h3 id="fmtCsvTitle">CSV (.csv)</h3>
+        <ul class="help_text">
+          <li id="fmtCsv1">
+            Табличний список атомів (наприклад колонки element/sym + x,y,z).
+          </li>
+          <li id="fmtCsv2">
+            Потрібні принаймні елемент і координати; зайві колонки ігноруються.
+          </li>
+          <li id="fmtCsv3">
+            Зв’язки/комірка не задаються: Tiles не застосовується; “Зв’язки” —
+            допоміжна візуалізація.
+          </li>
+          <li id="fmtCsv4">
+            Корисно для власних даних з Excel/Google Sheets або зі скриптів.
+          </li>
+        </ul>
+
+        <p class="help_text muted" id="fmtNote">
+          Нотатка: у структурних форматах (особливо CIF) зв’язки можуть бути
+          відсутні або не збігатися з “молекульним” уявленням. У цьому
+          симуляторі зв’язки — допоміжний шар візуалізації, а не “істина” хімії.
+        </p>
+      </div>
+
+      <!-- CONTROLS -->
+      <div class="instructions">
+        <h2 id="controlsTitle">Пояснення елементів керування</h2>
+        <p class="help_text" id="controlsIntro">
+          Регулятори змінюють вигляд TEM‑подібного зображення (контраст, фон,
+          шум, розфокус), але не “переписують” саму структуру.
+        </p>
+
+        <h3 id="controlsMoveTitle">Переміщення/обертання</h3>
+        <ul class="help_text">
+          <li id="controlsMove1">
+            ↑ ↓ ← → — панорамування (зсув) в’юхи по площині кадру.
+          </li>
+          <li id="controlsMove2">
+            ⟲ / ⟳ — обертання “столика” (в’юхи) навколо центру сцени.
+          </li>
+          <li id="controlsMove3">
+            Reset — скидання позиції/обертання у базовий стан.
+          </li>
+          <li id="controlsMove4">
+            X90 / Y90 — поворот самої структури на 90° (щоб “перевернути” об’єкт
+            на інший бік).
+          </li>
+        </ul>
+
+        <h3 id="controlsTogglesTitle">Перемикачі</h3>
+        <dl class="help_text">
+          <dt id="tInvTitle">Інверсія (cb-invert)</dt>
+          <dd id="tInvDesc">
+            Інвертує яскравості: темне стає світлим і навпаки.
+          </dd>
+
+          <dt id="tNoiseTitle">Шум (cb-noise)</dt>
+          <dd id="tNoiseDesc">
+            Вмикає додавання шуму детектора. Сила задається слайдером “Шум (σ)”.
+          </dd>
+
+          <dt id="tBondsTitle">Зв’язки (cb-bonds)</dt>
+          <dd id="tBondsDesc">
+            Показує/ховає зв’язки між атомами. У CIF зв’язків може не бути.
+          </dd>
+
+          <dt id="tHideFrontTitle">
+            Ховати передні шари при розфокусі (cb-hidefront)
+          </dt>
+          <dd id="tHideFrontDesc">
+            Допоміжний режим для DoF: може ховати те, що “перед” фокусом, щоб
+            шари менше перекривалися.
+          </dd>
+
+          <dt id="tScaleTitle">Масштаб (cb-scale)</dt>
+          <dd id="tScaleDesc">
+            Показує/ховає масштабну лінійку (якщо вона ввімкнена у рендері).
+          </dd>
+        </dl>
+
+        <h3 id="controlsSlidersTitle">Слайдери</h3>
+        <dl class="help_text">
+          <dt id="sZoomTitle">Å/pix (rng-zoom)</dt>
+          <dd id="sZoomDesc">
+            Зум у фізичних одиницях. Менше — наблизити, більше — віддалити.
+          </dd>
+
+          <dt id="sContrastTitle">Контраст (rng-contrast)</dt>
+          <dd id="sContrastDesc">
+            Підсилює різницю між темними й світлими ділянками.
+          </dd>
+
+          <dt id="sBlurTitle">Розмиття (σ) (rng-blur)</dt>
+          <dd id="sBlurDesc">Загальне після-розмиття фінального зображення.</dd>
+
+          <dt id="sBgTitle">Фон (0–255) (rng-bg)</dt>
+          <dd id="sBgDesc">
+            Сірість фону: 0 — чорний, 127 — нейтральний, 255 — білий.
+          </dd>
+
+          <dt id="sNoiseTitle">Шум (σ) (rng-noise)</dt>
+          <dd id="sNoiseDesc">
+            Сила шуму. Має сенс, якщо ввімкнений перемикач “Шум”.
+          </dd>
+
+          <dt id="sFocusTitle">Фокус Z (норм.) (rng-focus)</dt>
+          <dd id="sFocusDesc">
+            Положення фокусу по глибині (нормалізовано). Використовується разом
+            із DoF.
+          </dd>
+
+          <dt id="sDofTitle">Розфокус (Å⁻¹) (rng-dof)</dt>
+          <dd id="sDofDesc">Сила різного розмиття шарів по глибині.</dd>
+
+          <dt id="sBwidthTitle">Ширина дуги (px) (rng-bwidth)</dt>
+          <dd id="sBwidthDesc">Візуальна ширина “перешийків/дуг” зв’язків.</dd>
+
+          <dt id="sBampTitle">Висота дуги (rng-bamp)</dt>
+          <dd id="sBampDesc">
+            Амплітуда “хвилі” зв’язку (стилізація зв’язків).
+          </dd>
+        </dl>
+
+        <h3 id="controlsInputsTitle">Поля вводу та кнопки</h3>
+        <dl class="help_text">
+          <dt id="iClipTitle">
+            Підлога/Стеля яскравості (tb-clip-lo / tb-clip-hi)
+          </dt>
+          <dd id="iClipDesc">Обрізання діапазону яскравості після рендера.</dd>
+
+          <dt id="iTilesTitle">Tiles (tb-tiles)</dt>
+          <dd id="iTilesDesc">
+            Повторення комірки для періодичних структур: 2x2x1, 3x3x2 тощо.
+          </dd>
+
+          <dt id="iSmilesTitle">SMILES (tb-smiles)</dt>
+          <dd id="iSmilesDesc">
+            Рядок SMILES. Enter запускає перебудову та рендер.
+          </dd>
+
+          <dt id="iFileTitle">Завантажити файл (file-input)</dt>
+          <dd id="iFileDesc">
+            Локальне завантаження/перетягування файлів (.cif, .poscar, .json,
+            .xyz, .mol, .pdb/.ent, .csv). Файл не відправляється на сервер.
+          </dd>
+
+          <dt id="iSizeTitle">Ширина/Висота (tb-w / tb-h)</dt>
+          <dd id="iSizeDesc">
+            Розмір canvas. Впливає на детальність та швидкість.
+          </dd>
+
+          <dt id="iExportTitle">Експортувати PNG (btn-export)</dt>
+          <dd id="iExportDesc">Зберігає поточне зображення в PNG.</dd>
+
+          <dt id="iLblTitle">lbl-title</dt>
+          <dd id="iLblDesc">
+            Назва/ідентифікація поточного об’єкта (якщо є в даних).
+          </dd>
+        </dl>
+      </div>
+
+      <!-- EXAMPLES -->
+      <div class="main-block">
+        <h2 id="examplesTitle">Приклади</h2>
+
+        <h3 id="examplesSmilesTitle">SMILES — 10 слотів</h3>
+        <p class="help_text" id="examplesSmilesInstr">
+          Встав у поле SMILES та натисни Enter.
+        </p>
+        <div class="codegrid" aria-label="SMILES slots">
+          <pre class="codebox"><code>Cn1cnc2n(C)c(=O)n(C)c(=O)c12</code></pre>
+          <pre class="codebox"><code>c1ccccc1</code></pre>
+          <pre class="codebox"><code>n1ccccc1</code></pre>
+          <pre class="codebox"><code>C[C@H](O)C(=O)O</code></pre>
+          <pre class="codebox"><code>O=S(=O)(O)O</code></pre>
+          <pre class="codebox"><code>ClC(Cl)Cl</code></pre>
+          <pre class="codebox"><code>C#N</code></pre>
+          <pre class="codebox"><code>OP(=O)(O)O</code></pre>
+          <pre class="codebox"><code>[Na+].[O-]C(=O)C(=O)[O-].[Na+]</code></pre>
+          <pre
+            class="codebox"
+          ><code>CC(C)CCCC(C)C1CCC2C1(CCC3C2CC=C4C3(CCC(C4)O)C)C</code></pre>
+        </div>
+
+        <h3 style="margin-top: 18px" id="examplesFilesTitle">
+          Файли прикладів
+        </h3>
+        <p class="help_text" id="examplesFilesInstr">
+          Натисни на посилання, щоб завантажити файл, а потім закинь його у
+          візуалізатор (Upload або drag&drop).
+        </p>
+        <p class="help_text muted" id="examplesFilesInstr2">
+          Рівні: 1) Samples у випадаючому списку — швидкі демо. 2) Ці
+          файли‑приклади — “мікробібліотека”, щоб одразу мати більше даних. 3)
+          Зовнішні бази (Materials Project, COD, PDB тощо) — для пошуку
+          будь‑яких структур.
+        </p>
+
+        <h4 id="exCifTitle">CIF (кристали)</h4>
+        <ul class="help_text">
+          <li>
+            <a href="./samples/cif/example01.cif">example01.cif</a>
+          </li>
+          <li>
+            <a href="./samples/cif/example02.cif">example02.cif</a>
+          </li>
+          <li>
+            <a href="./samples/cif/example03.cif">example03.cif</a>
+          </li>
+          <li>
+            <a href="./samples/cif/example04.cif">example04.cif</a>
+          </li>
+          <li>
+            <a href="./samples/cif/example05.cif">example05.cif</a>
+          </li>
+          <li>
+            <a href="./samples/cif/example06.cif">example06.cif</a>
+          </li>
+          <li>
+            <a href="./samples/cif/example07.cif">example07.cif</a>
+          </li>
+          <li>
+            <a href="./samples/cif/example08.cif">example08.cif</a>
+          </li>
+          <li>
+            <a href="./samples/cif/example09.cif">example09.cif</a>
+          </li>
+          <li>
+            <a href="./samples/cif/example10.cif">example10.cif</a>
+          </li>
+        </ul>
+
+        <h4 id="exPoscarTitle">POSCAR</h4>
+        <ul class="help_text">
+          <li>
+            <a href="./samples/poscar/example01.poscar">example01.poscar</a>
+          </li>
+          <li>
+            <a href="./samples/poscar/example02.poscar">example02.poscar</a>
+          </li>
+          <li>
+            <a href="./samples/poscar/example03.poscar">example03.poscar</a>
+          </li>
+          <li>
+            <a href="./samples/poscar/example04.poscar">example04.poscar</a>
+          </li>
+          <li>
+            <a href="./samples/poscar/example05.poscar">example05.poscar</a>
+          </li>
+          <li>
+            <a href="./samples/poscar/example06.poscar">example06.poscar</a>
+          </li>
+          <li>
+            <a href="./samples/poscar/example07.poscar">example07.poscar</a>
+          </li>
+          <li>
+            <a href="./samples/poscar/example08.poscar">example08.poscar</a>
+          </li>
+          <li>
+            <a href="./samples/poscar/example09.poscar">example09.poscar</a>
+          </li>
+          <li>
+            <a href="./samples/poscar/example10.poscar">example10.poscar</a>
+          </li>
+        </ul>
+
+        <h4 id="exJsonTitle">JSON</h4>
+        <ul class="help_text">
+          <li>
+            <a href="./samples/json/example01.json">example01.json</a>
+          </li>
+          <li>
+            <a href="./samples/json/example02.json">example02.json</a>
+          </li>
+          <li>
+            <a href="./samples/json/example03.json">example03.json</a>
+          </li>
+          <li>
+            <a href="./samples/json/example04.json">example04.json</a>
+          </li>
+          <li>
+            <a href="./samples/json/example05.json">example05.json</a>
+          </li>
+          <li>
+            <a href="./samples/json/example06.json">example06.json</a>
+          </li>
+          <li>
+            <a href="./samples/json/example07.json">example07.json</a>
+          </li>
+          <li>
+            <a href="./samples/json/example08.json">example08.json</a>
+          </li>
+          <li>
+            <a href="./samples/json/example09.json">example09.json</a>
+          </li>
+          <li>
+            <a href="./samples/json/example10.json">example10.json</a>
+          </li>
+        </ul>
+
+        <h4 id="exPdbTitle">PDB</h4>
+        <ul class="help_text">
+          <li>
+            <a href="./samples/pdb/example01.ent">example01.pdb</a>
+          </li>
+          <li>
+            <a href="./samples/pdb/example02.ent">example02.pdb</a>
+          </li>
+          <li>
+            <a href="./samples/pdb/example03.ent">example03.pdb</a>
+          </li>
+          <li>
+            <a href="./samples/pdb/example04.ent">example04.pdb</a>
+          </li>
+          <li>
+            <a href="./samples/pdb/example05.ent">example05.pdb</a>
+          </li>
+          <li>
+            <a href="./samples/pdb/example06.ent">example06.pdb</a>
+          </li>
+          <li>
+            <a href="./samples/pdb/example07.ent">example07.pdb</a>
+          </li>
+          <li>
+            <a href="./samples/pdb/example08.ent">example08.pdb</a>
+          </li>
+          <li>
+            <a href="./samples/pdb/example09.ent">example09.pdb</a>
+          </li>
+          <li>
+            <a href="./samples/pdb/example10.ent">example10.pdb</a>
+          </li>
+        </ul>
+
+        <h4 id="exMolTitle">MOL</h4>
+        <ul class="help_text">
+          <li>
+            <a href="./samples/mol/example01.mol">example01.mol</a>
+          </li>
+          <li>
+            <a href="./samples/mol/example02.mol">example02.mol</a>
+          </li>
+          <li>
+            <a href="./samples/mol/example03.mol">example03.mol</a>
+          </li>
+          <li>
+            <a href="./samples/mol/example04.mol">example04.mol</a>
+          </li>
+          <li>
+            <a href="./samples/mol/example05.mol">example05.mol</a>
+          </li>
+          <li>
+            <a href="./samples/mol/example06.mol">example06.mol</a>
+          </li>
+          <li>
+            <a href="./samples/mol/example07.mol">example07.mol</a>
+          </li>
+          <li>
+            <a href="./samples/mol/example08.mol">example08.mol</a>
+          </li>
+          <li>
+            <a href="./samples/mol/example09.mol">example09.mol</a>
+          </li>
+          <li>
+            <a href="./samples/mol/example10.mol">example10.mol</a>
+          </li>
+        </ul>
+
+        <h4 id="exXyzTitle">XYZ</h4>
+        <ul class="help_text">
+          <li>
+            <a href="./samples/xyz/example01.xyz">example01.xyz</a>
+          </li>
+          <li>
+            <a href="./samples/xyz/example02.xyz">example02.xyz</a>
+          </li>
+          <li>
+            <a href="./samples/xyz/example03.xyz">example03.xyz</a>
+          </li>
+          <li>
+            <a href="./samples/xyz/example04.xyz">example04.xyz</a>
+          </li>
+          <li>
+            <a href="./samples/xyz/example05.xyz">example05.xyz</a>
+          </li>
+          <li>
+            <a href="./samples/xyz/example06.xyz">example06.xyz</a>
+          </li>
+          <li>
+            <a href="./samples/xyz/example07.xyz">example07.xyz</a>
+          </li>
+          <li>
+            <a href="./samples/xyz/example08.xyz">example08.xyz</a>
+          </li>
+          <li>
+            <a href="./samples/xyz/example09.xyz">example09.xyz</a>
+          </li>
+          <li>
+            <a href="./samples/xyz/example10.xyz">example10.xyz</a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- WORKFLOW -->
+      <div class="main-block">
+        <h2 id="workflowTitle">Рекомендований сценарій роботи</h2>
+        <ol class="help_text">
+          <li id="workflow1">
+            Швидко перевірити рендер на SMILES (контраст/фон/шум).
+          </li>
+          <li id="workflow2">
+            Для кристалів — відкрити CIF, виставити Tiles і підібрати Å/pix.
+          </li>
+          <li id="workflow3">
+            Зазвичай Å/pix визначає масштаб деталей, а Контраст+Фон —
+            читабельність.
+          </li>
+          <li id="workflow4">
+            Для презентацій — експортувати PNG з повторюваними параметрами.
+          </li>
+        </ol>
+      </div>
+
+      <!-- TROUBLESHOOT -->
+      <div class="main-block">
+        <h2 id="troubleshootTitle">Діагностика</h2>
+        <ul class="help_text">
+          <li id="tr1">
+            Порожнє зображення: перевір SMILES/файл, зменш Å/pix (наблизь),
+            підніми контраст.
+          </li>
+          <li id="tr2">
+            Занадто темно/світло: підкоригуй фон і контраст, за потреби clip
+            lo/hi.
+          </li>
+          <li id="tr3">
+            Дивні зв’язки у CIF: у CIF зв’язків часто немає; зв’язки тут можуть
+            бути допоміжні.
+          </li>
+          <li id="tr4">
+            Підвисання: зменш canvas, зменш tiles, вимкни DoF/зв’язки/шум або
+            “віддалися” (збільш Å/pix).
+          </li>
+        </ul>
+      </div>
+
+      <!-- DATASETS -->
+      <div class="download-block">
+        <h2 id="datasetsTitle">Бібліотеки файлів (де брати структури)</h2>
+
+        <h3 id="dsCrystalsTitle">Матеріали та кристали (CIF / POSCAR)</h3>
+        <ul class="help_text">
+          <li>
+            <a
+              href="https://next-gen.materialsproject.org/"
+              target="_blank"
+              rel="noopener"
+              >Materials Project</a
+            >
+            <span id="dsCr1"
+              >— велика база матеріалів (експорт структур, розрахункові
+              дані).</span
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.materialscloud.org/"
+              target="_blank"
+              rel="noopener"
+              >Materials Cloud</a
+            >
+            <span id="dsCr2"
+              >— архів структур і розрахунків, багато даних для
+              завантаження.</span
+            >
+          </li>
+          <li>
+            <a
+              href="http://www.crystallography.net/cod/"
+              target="_blank"
+              rel="noopener"
+              >Crystallography Open Database (COD)</a
+            >
+            <span id="dsCr3">— відкрита база CIF-структур.</span>
+          </li>
+          <li>
+            <a href="https://aflowlib.org/" target="_blank" rel="noopener"
+              >AFLOWlib</a
+            >
+            <span id="dsCr4"
+              >— база матеріалів та інструменти, часто доступні структурні
+              файли.</span
+            >
+          </li>
+          <li>
+            <a href="https://oqmd.org/" target="_blank" rel="noopener">OQMD</a>
+            <span id="dsCr5"
+              >— база матеріалів (для багатьох записів доступний POSCAR).</span
+            >
+          </li>
+        </ul>
+
+        <h3 id="dsMoleculesTitle">Малі молекули (SMILES / MOL / SDF / XYZ)</h3>
+        <ul class="help_text">
+          <li>
+            <a
+              href="https://pubchem.ncbi.nlm.nih.gov/"
+              target="_blank"
+              rel="noopener"
+              >PubChem</a
+            >
+            <span id="dsMol1">— SMILES, SDF та довідкова інформація.</span>
+          </li>
+          <li>
+            <a
+              href="https://www.ebi.ac.uk/chembl/"
+              target="_blank"
+              rel="noopener"
+              >ChEMBL</a
+            >
+            <span id="dsMol2">— біоактивні сполуки, експорти структур.</span>
+          </li>
+          <li>
+            <a
+              href="https://cartblanche.docking.org/"
+              target="_blank"
+              rel="noopener"
+              >ZINC / CartBlanche</a
+            >
+            <span id="dsMol3">— великі набори молекул (SMILES/SDF тощо).</span>
+          </li>
+          <li>
+            <a
+              href="https://cactus.nci.nih.gov/chemical/structure"
+              target="_blank"
+              rel="noopener"
+              ><span id="dsMol4Name"
+                >NCI/CADD Chemical Identifier Resolver (CACTUS)</span
+              ></a
+            >
+            <span id="dsMol4Desc"
+              >— може віддати структуру у XYZ (та інших форматах) за
+              назвою/SMILES/InChIKey; зручно для швидких XYZ‑файлів.</span
+            >
+          </li>
+
+          <li>
+            <a
+              href="https://www.chemspider.com/search"
+              target="_blank"
+              rel="noopener"
+              >ChemSpider</a
+            >
+            <span id="dsMol5Desc"
+              >— пошук і довідкова база сполук; зручно знаходити
+              структури/ідентифікатори і переходити до джерел.</span
+            >
+          </li>
+          <li>
+            <a
+              href="https://www.webqc.org/molecularformatsconverter.php"
+              target="_blank"
+              rel="noopener"
+              >WebQC Molecular Formats Converter</a
+            >
+            <span id="dsMol6Desc"
+              >— онлайн‑конвертер форматів (SMILES/MOL/SDF/XYZ та інші); швидко
+              перетворює структуру у потрібний файл.</span
+            >
+          </li>
+        </ul>
+
+        <h3 id="dsBioTitle">Біоструктури (PDB / mmCIF)</h3>
+        <ul class="help_text">
+          <li>
+            <a href="https://www.rcsb.org/" target="_blank" rel="noopener"
+              >RCSB Protein Data Bank (PDB)</a
+            >
+            <span id="dsBio1"
+              >— PDB/mmCIF для білків, ДНК/РНК, комплексів.</span
+            >
+          </li>
+        </ul>
+      </div>
+
+      <!-- REFERENCES -->
+      <div class="links-block">
+        <h2 id="refsTitle">Довідка та референси</h2>
+
+        <h3 id="refsLibsTitle">Бібліотеки</h3>
+        <ul class="help_text">
+          <li>
+            <a href="https://www.rdkit.org/" target="_blank" rel="noopener"
+              >RDKit</a
+            >
+            <span id="refsLib1"
+              >— бібліотека хемінформатики (у проєкті використовується
+              WASM-збірка).</span
+            >
+          </li>
+        </ul>
+
+        <h3 id="refsSpecsTitle">Специфікації форматів</h3>
+        <ul class="help_text">
+          <li>
+            <a
+              href="https://www.iucr.org/resources/cif"
+              target="_blank"
+              rel="noopener"
+              >IUCr CIF</a
+            >
+            <span id="refsSpec1">— офіційна інформація про формат CIF.</span>
+          </li>
+          <li>
+            <a
+              href="https://www.wwpdb.org/documentation/file-format"
+              target="_blank"
+              rel="noopener"
+              >wwPDB file formats</a
+            >
+            <span id="refsSpec2">— документація PDB/mmCIF.</span>
+          </li>
+        </ul>
+
+        <h3 id="refsVizTitle">Референс-візуалізатори</h3>
+        <ul class="help_text">
+          <li>
+            <a href="https://3dmol.csb.pitt.edu/" target="_blank" rel="noopener"
+              >3Dmol.js</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://jmol.sourceforge.net/"
+              target="_blank"
+              rel="noopener"
+              >JSmol/Jmol</a
+            >
+          </li>
+        </ul>
+
+        <p class="help_text muted" id="refsNote">
+          Нотатка: проєкт імітує TEM‑подібний вигляд для
+          навчальної/демонстраційної візуалізації і не є повноцінним
+          multislice‑моделюванням.
+        </p>
+      </div>
     </div>
-
-    <!-- WORKFLOW -->
-    <div class="main-block">
-      <h2 id="workflowTitle">Рекомендований сценарій роботи</h2>
-      <ol class="help_text">
-        <li id="workflow1">Швидко перевірити рендер на SMILES (контраст/фон/шум).</li>
-        <li id="workflow2">Для кристалів — відкрити CIF, виставити Tiles і підібрати Å/pix.</li>
-        <li id="workflow3">Зазвичай Å/pix визначає масштаб деталей, а Контраст+Фон — читабельність.</li>
-        <li id="workflow4">Для презентацій — експортувати PNG з повторюваними параметрами.</li>
-      </ol>
-    </div>
-
-    <!-- TROUBLESHOOT -->
-    <div class="main-block">
-      <h2 id="troubleshootTitle">Діагностика</h2>
-      <ul class="help_text">
-        <li id="tr1">Порожнє зображення: перевір SMILES/файл, зменш Å/pix (наблизь), підніми контраст.</li>
-        <li id="tr2">Занадто темно/світло: підкоригуй фон і контраст, за потреби clip lo/hi.</li>
-        <li id="tr3">Дивні зв’язки у CIF: у CIF зв’язків часто немає; зв’язки тут можуть бути допоміжні.</li>
-        <li id="tr4">Підвисання: зменш canvas, зменш tiles, вимкни DoF/зв’язки/шум або “віддалися” (збільш Å/pix).</li>
-      </ul>
-    </div>
-
-    <!-- DATASETS -->
-    <div class="download-block">
-      <h2 id="datasetsTitle">Бібліотеки файлів (де брати структури)</h2>
-
-      <h3 id="dsCrystalsTitle">Матеріали та кристали (CIF / POSCAR)</h3>
-      <ul class="help_text">
-        <li><a href="https://next-gen.materialsproject.org/" target="_blank" rel="noopener">Materials Project</a> <span id="dsCr1">— велика база матеріалів (експорт структур, розрахункові дані).</span></li>
-        <li><a href="https://www.materialscloud.org/" target="_blank" rel="noopener">Materials Cloud</a> <span id="dsCr2">— архів структур і розрахунків, багато даних для завантаження.</span></li>
-        <li><a href="http://www.crystallography.net/cod/" target="_blank" rel="noopener">Crystallography Open Database (COD)</a> <span id="dsCr3">— відкрита база CIF-структур.</span></li>
-        <li><a href="https://aflowlib.org/" target="_blank" rel="noopener">AFLOWlib</a> <span id="dsCr4">— база матеріалів та інструменти, часто доступні структурні файли.</span></li>
-        <li><a href="https://oqmd.org/" target="_blank" rel="noopener">OQMD</a> <span id="dsCr5">— база матеріалів (для багатьох записів доступний POSCAR).</span></li>
-      </ul>
-
-      <h3 id="dsMoleculesTitle">Малі молекули (SMILES / MOL / SDF / XYZ)</h3>
-      <ul class="help_text">
-        <li><a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">PubChem</a> <span id="dsMol1">— SMILES, SDF та довідкова інформація.</span></li>
-        <li><a href="https://www.ebi.ac.uk/chembl/" target="_blank" rel="noopener">ChEMBL</a> <span id="dsMol2">— біоактивні сполуки, експорти структур.</span></li>
-        <li><a href="https://cartblanche.docking.org/" target="_blank" rel="noopener">ZINC / CartBlanche</a> <span id="dsMol3">— великі набори молекул (SMILES/SDF тощо).</span></li>
-        <li><a href="https://cactus.nci.nih.gov/chemical/structure" target="_blank" rel="noopener"><span id="dsMol4Name">NCI/CADD Chemical Identifier Resolver (CACTUS)</span></a> <span id="dsMol4Desc">— може віддати структуру у XYZ (та інших форматах) за назвою/SMILES/InChIKey; зручно для швидких XYZ‑файлів.</span></li>
-      
-        <li><a href="https://www.chemspider.com/search" target="_blank" rel="noopener">ChemSpider</a> <span id="dsMol5Desc">— пошук і довідкова база сполук; зручно знаходити структури/ідентифікатори і переходити до джерел.</span></li>
-        <li><a href="https://www.webqc.org/molecularformatsconverter.php" target="_blank" rel="noopener">WebQC Molecular Formats Converter</a> <span id="dsMol6Desc">— онлайн‑конвертер форматів (SMILES/MOL/SDF/XYZ та інші); швидко перетворює структуру у потрібний файл.</span></li>
-</ul>
-
-      <h3 id="dsBioTitle">Біоструктури (PDB / mmCIF)</h3>
-      <ul class="help_text">
-        <li><a href="https://www.rcsb.org/" target="_blank" rel="noopener">RCSB Protein Data Bank (PDB)</a> <span id="dsBio1">— PDB/mmCIF для білків, ДНК/РНК, комплексів.</span></li>
-      </ul>
-    </div>
-
-    <!-- REFERENCES -->
-    <div class="links-block">
-      <h2 id="refsTitle">Довідка та референси</h2>
-
-      <h3 id="refsLibsTitle">Бібліотеки</h3>
-      <ul class="help_text">
-        <li><a href="https://www.rdkit.org/" target="_blank" rel="noopener">RDKit</a> <span id="refsLib1">— бібліотека хемінформатики (у проєкті використовується WASM-збірка).</span></li>
-      </ul>
-
-      <h3 id="refsSpecsTitle">Специфікації форматів</h3>
-      <ul class="help_text">
-        <li><a href="https://www.iucr.org/resources/cif" target="_blank" rel="noopener">IUCr CIF</a> <span id="refsSpec1">— офіційна інформація про формат CIF.</span></li>
-        <li><a href="https://www.wwpdb.org/documentation/file-format" target="_blank" rel="noopener">wwPDB file formats</a> <span id="refsSpec2">— документація PDB/mmCIF.</span></li>
-      </ul>
-
-      <h3 id="refsVizTitle">Референс-візуалізатори</h3>
-      <ul class="help_text">
-        <li><a href="https://3dmol.csb.pitt.edu/" target="_blank" rel="noopener">3Dmol.js</a></li>
-        <li><a href="https://jmol.sourceforge.net/" target="_blank" rel="noopener">JSmol/Jmol</a></li>
-      </ul>
-
-      <p class="help_text muted" id="refsNote">
-        Нотатка: проєкт імітує TEM‑подібний вигляд для навчальної/демонстраційної візуалізації і не є повноцінним multislice‑моделюванням.
-      </p>
-    </div>
-
-  </div>
-</body>
+  </body>
 </html>
