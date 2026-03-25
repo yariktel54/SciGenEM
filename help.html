@@ -2,7 +2,7 @@
 <html lang="uk">
   <head>
     <meta charset="utf-8" />
-    <title id="title">SciGenTEM Visualizer — Help</title>
+    <title id="title">SciGenEM Visualizer — Help</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/x-icon" href="./img_web/favicon.ico" />
     <style>
@@ -235,7 +235,7 @@
         </div>
         <div>
           <h1 style="margin: auto 0px 0px" id="helpTitle">
-            SciGenTEM Візуалізатор — Інструкція
+            SciGenEM Візуалізатор — Інструкція
           </h1>
         </div>
         <div class="lang_container">
@@ -255,11 +255,19 @@
             SMILES: встав рядок у поле SMILES та натисни Enter.
           </li>
           <li id="hHow2">
-            Файли: завантаж або перетягни .cif на сторінку візуалізатора.
+            Або використай Samples, щоб швидко завантажити готовий приклад.
           </li>
           <li id="hHow3">
+            Файли: завантаж або перетягни .cif, .csv, .xyz, .json, .mol,
+            .pdb/.ent або POSCAR/CONTCAR на сторінку.
+          </li>
+          <li id="hHow4">
             Для періодичних структур (CIF/POSCAR/JSON) за потреби введи Tiles
             (наприклад 2x2x1).
+          </li>
+          <li id="hHow5">
+            Якщо в сцені кілька об’єктів, обери активний у списку Scene і
+            редагуй лише його.
           </li>
         </ol>
       </div>
@@ -438,8 +446,10 @@
             Reset — скидання позиції/обертання у базовий стан.
           </li>
           <li id="controlsMove4">
-            X90 / Y90 — поворот самої структури на 90° (щоб “перевернути” об’єкт
-            на інший бік).
+            ⨀ у Move скидає позицію об’єкта, ⨀ у Rotate скидає його обертання.
+          </li>
+          <li id="controlsMove5">
+            Кнопки Z− / Z+ рухають активний об’єкт уздовж осі Z сцени.
           </li>
         </ul>
 
@@ -553,6 +563,100 @@
             Назва/ідентифікація поточного об’єкта (якщо є в даних).
           </dd>
         </dl>
+      </div>
+
+
+      <div class="main-block">
+        <h2 id="sceneHelpTitle">Сцена та робота з кількома об’єктами</h2>
+        <ul class="help_text">
+          <li id="sceneHelp1">
+            Кожен завантажений файл або SMILES додається як окремий об’єкт сцени.
+          </li>
+          <li id="sceneHelp2">
+            У панелі Scene можна перемикати активний об’єкт, вмикати/вимикати його видимість і видаляти непотрібні елементи.
+          </li>
+          <li id="sceneHelp3">
+            Лічильник Scene показує, скільки об’єктів зараз реально беруть участь у рендері.
+          </li>
+          <li id="sceneHelp4">
+            Кнопка Reset edits: object скидає лише активний об’єкт, а Reset edits: all — усі об’єкти сцени.
+          </li>
+        </ul>
+      </div>
+
+      <div class="main-block">
+        <h2 id="objectEditHelpTitle">Редагування активного об’єкта</h2>
+        <ul class="help_text">
+          <li id="objectEditHelp1">
+            Блок Move змінює положення активного об’єкта по X, Y та Z у глобальній сцені.
+          </li>
+          <li id="objectEditHelp2">
+            Блок Rotate обертає активний об’єкт навколо осей X, Y і Z незалежно від інших об’єктів.
+          </li>
+          <li id="objectEditHelp3">
+            Під кнопками показуються поточні числові значення зсуву та кутів обертання.
+          </li>
+          <li id="objectEditHelp4">
+            У Additional object edit доступний Z-clip: можна обрізати активний об’єкт за глобальною віссю Z після повороту та зсуву.
+          </li>
+          <li id="objectEditHelp5">
+            Z-clip має незалежні межі min/max і окрему кнопку Reset clip.
+          </li>
+        </ul>
+      </div>
+
+      <div class="main-block">
+        <h2 id="modesHelpTitle">Режими TEM / STM / AFM</h2>
+        <ul class="help_text">
+          <li id="modesHelp1">
+            TEM — проєкційний режим: внесок атомів накопичується по товщині зразка.
+          </li>
+          <li id="modesHelp2">
+            STM — поверхневий режим: працює як верхньошаровий сигнал, без DoF і без зв’язків.
+          </li>
+          <li id="modesHelp3">
+            AFM — також поверхневий режим; замість TEM-логіки тут важливі рельєф і параметр Tip sharpness.
+          </li>
+          <li id="modesHelp4">
+            Scanlines з’являються тільки у STM, а Tip sharpness — тільки в AFM.
+          </li>
+        </ul>
+      </div>
+
+      <div class="main-block">
+        <h2 id="exportHelpTitle">Експорт і запис</h2>
+        <ul class="help_text">
+          <li id="exportHelp1">
+            Export PNG зберігає поточний кадр canvas у вигляді растрового зображення.
+          </li>
+          <li id="exportHelp2">
+            Export XYZ вивантажує один XYZ-файл для всіх видимих об’єктів після застосування їхніх pos/rot/Z-clip.
+          </li>
+          <li id="exportHelp3">
+            GIF tools дозволяють почати запис, зупинити його та зберегти готовий GIF-файл.
+          </li>
+          <li id="exportHelp4">
+            Поля Width/Height змінюють розмір canvas і впливають як на швидкість, так і на рівень деталізації.
+          </li>
+        </ul>
+      </div>
+
+      <div class="main-block">
+        <h2 id="extraHelpTitle">Додаткові налаштування</h2>
+        <ul class="help_text">
+          <li id="extraHelp1">
+            Additional settings містить Background, параметри зв’язків і clipping яскравості floor/ceiling.
+          </li>
+          <li id="extraHelp2">
+            Element overrides дозволяє окремо задавати Size× і Darkness× для кожного елемента.
+          </li>
+          <li id="extraHelp3">
+            У таблиці overrides є прев’ю атома з поточними глобальними ефектами.
+          </li>
+          <li id="extraHelp4">
+            Export config / Import config зберігає і відновлює JSON-конфіг overrides.
+          </li>
+        </ul>
       </div>
 
       <!-- EXAMPLES -->
@@ -802,17 +906,16 @@
         <h2 id="workflowTitle">Рекомендований сценарій роботи</h2>
         <ol class="help_text">
           <li id="workflow1">
-            Швидко перевірити рендер на SMILES (контраст/фон/шум).
+            Швидко перевірити рендер на SMILES або Samples (контраст/фон/шум).
           </li>
           <li id="workflow2">
-            Для кристалів — відкрити CIF, виставити Tiles і підібрати Å/pix.
+            Для кристалів — відкрити CIF/POSCAR/JSON, виставити Tiles і підібрати Å/pix.
           </li>
           <li id="workflow3">
-            Зазвичай Å/pix визначає масштаб деталей, а Контраст+Фон —
-            читабельність.
+            Якщо об’єктів кілька — спочатку відрегулювати їхні pos/rot/clip у Scene, а вже потім робити фінальний рендер.
           </li>
           <li id="workflow4">
-            Для презентацій — експортувати PNG з повторюваними параметрами.
+            Для обміну геометрією — експортувати XYZ, для зображень — PNG, для анімації — GIF.
           </li>
         </ol>
       </div>
@@ -836,6 +939,9 @@
           <li id="tr4">
             Підвисання: зменш canvas, зменш tiles, вимкни DoF/зв’язки/шум або
             “віддалися” (збільш Å/pix).
+          </li>
+          <li id="tr5">
+            Якщо об’єкт “зник” у сцені — перевір його visibility, позицію по Z та межі Z-clip.
           </li>
         </ul>
       </div>

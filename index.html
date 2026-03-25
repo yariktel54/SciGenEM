@@ -147,7 +147,7 @@
       }
       .canvas_tools {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
         gap: 10px;
         margin-top: 10px;
         align-items: end;
@@ -253,12 +253,34 @@
         display: none;
       }
 
+      .table_controls {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 6px;
+      }
+
+      .table_control_group {
+        min-width: 160px;
+      }
+
+      .table_control_title {
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+
       .viewpad {
         display: grid;
         grid-template-columns: 44px 44px 44px;
         grid-template-rows: 44px 44px 44px;
         gap: 8px;
-        margin-top: 6px;
+      }
+
+      .rotate_z_row {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
       }
 
       .viewbtn {
@@ -424,6 +446,248 @@
         background: white;
       }
 
+      .object_edit_values {
+        margin-top: 8px;
+        color: #666;
+        font-size: 12px;
+      }
+
+      .edit_aux_row {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        flex-wrap: wrap;
+      }
+
+      .edit_aux_row .viewbtn {
+        width: auto;
+        min-width: 52px;
+        padding: 0 10px;
+      }
+
+      .object_edit_reset {
+        margin-top: 10px;
+        padding: 8px 10px;
+        border: 1px solid #d9d9d9;
+        background: #fff;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      .object_edit_reset:hover {
+        background: #f5f5f5;
+      }
+
+      .scene_panel {
+        margin-top: 12px;
+        border: 1px solid #e2e2e2;
+        border-radius: 10px;
+        background: #fafafa;
+        padding: 10px;
+      }
+
+      .scene_panel_title {
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      .scene_panel_meta {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 8px;
+      }
+
+      #scene-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .scene_item {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 10px;
+        align-items: center;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .scene_item.is_active {
+        border-color: #4caf50;
+        box-shadow: 0 0 0 1px rgba(76, 175, 80, 0.2);
+      }
+
+      .scene_item_main {
+        cursor: pointer;
+        min-width: 0;
+      }
+
+      .scene_item_name {
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .scene_item_meta {
+        color: #666;
+        font-size: 12px;
+      }
+
+      .scene_remove_btn {
+        border: 1px solid #ddd;
+        background: #fff;
+        border-radius: 8px;
+        min-width: 36px;
+        height: 36px;
+        cursor: pointer;
+      }
+
+      .scene_empty {
+        color: #666;
+        font-size: 13px;
+      }
+
+      .object_advanced_details {
+        margin-top: 12px;
+        border: 1px solid #e2e2e2;
+        border-radius: 10px;
+        background: #fafafa;
+        padding: 10px;
+      }
+
+      .object_advanced_details summary {
+        cursor: pointer;
+        font-weight: 700;
+      }
+
+      .clipz_block {
+        margin-top: 10px;
+      }
+
+      .clipz_toggle {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        font-size: 13px;
+      }
+
+      .clipz_ranges {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .clipz_ranges label {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 6px;
+      }
+
+      .clipz_ranges input[type="range"] {
+        width: 100%;
+      }
+
+      .clipz_values {
+        margin-top: 8px;
+        color: #666;
+        font-size: 12px;
+      }
+
+      .authors_panel {
+        background: #ffffff;
+        padding: 16px 18px;
+        margin-bottom: 20px;
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .authors_panel_title {
+        margin: 0 0 0;
+      }
+
+      .authors_list {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+
+      .author_link {
+        color: #1f1f1f;
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .author_link:hover {
+        text-decoration: underline;
+      }
+
+      .cooperation_title {
+        margin: 0 0 0;
+        font-size: 15px;
+        color: #444;
+      }
+
+      .coop_logos {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .coop_logo_link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        border: 1px solid #e1e1e1;
+        border-radius: 12px;
+        padding: 8px 10px;
+        text-decoration: none;
+      }
+
+      .coop_logo_link:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      .coop_logo_link img {
+        display: block;
+        width: 132px;
+        height: 56px;
+        object-fit: contain;
+      }
+
+      .authors_panel_row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        text-align: center;
+      }
+
+      .authors_panel_row + .authors_panel_row {
+        margin-top: 12px;
+      }
+
+      .authors_panel_title,
+      .cooperation_title {
+        display: flex;
+        align-items: center;
+        min-height: 40px;
+      }
+
+      .authors_list {
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 0;
+      }
+
       @media (max-width: 900px) {
         .header_help_link {
           color: white;
@@ -504,6 +768,13 @@
         }
         .tem_grid {
           grid-template-columns: 1fr;
+        }
+        .table_controls {
+          gap: 12px;
+        }
+        .table_control_group {
+          min-width: 0;
+          width: 100%;
         }
       }
     </style>
@@ -619,17 +890,6 @@
               "tb-h": "iSizeDesc",
               resetSettings: "ttResetSettings",
 
-              // view buttons
-              "btn-view-up": "ttPanUp",
-              "btn-view-down": "ttPanDown",
-              "btn-view-left": "ttPanLeft",
-              "btn-view-right": "ttPanRight",
-              "btn-view-rotl": "ttRotL",
-              "btn-view-rotr": "ttRotR",
-              "btn-view-reset": "ttViewReset",
-              "btn-model-x90": "ttX90",
-              "btn-model-y90": "ttY90",
-
               // element overrides buttons
               "btn-elem-ov-reset": "ttElemReset",
               "btn-elem-ov-export": "ttElemExport",
@@ -644,6 +904,16 @@
               const tip = dict[key];
               if (typeof tip === "string" && tip.length) el.title = tip;
             }
+
+            document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+              const key = el.getAttribute("data-i18n-title");
+              const tip = dict[key];
+              if (typeof tip === "string" && tip.length) {
+                el.title = tip;
+              } else {
+                el.removeAttribute("title");
+              }
+            });
 
             // Element overrides table (dynamic) — size/dark inputs + preview canvas
             const cont = document.getElementById("elem-override-table");
@@ -729,41 +999,6 @@
         await window.RDKitReady;
         const smiles = "";
         await interactive_em_image(smiles, "");
-
-        document.addEventListener("dragover", (ev) => ev.preventDefault());
-        document.addEventListener("drop", async (ev) => {
-          ev.preventDefault();
-          const files = ev.dataTransfer?.files;
-          if (!files || !files.length) return;
-
-          const f = files[0];
-          const name = (f.name || "").toLowerCase();
-          const isPoscarName = name === "poscar" || name === "contcar";
-          if (
-            !(
-              isPoscarName ||
-              name.endsWith(".cif") ||
-              name.endsWith(".csv") ||
-              name.endsWith(".xyz") ||
-              name.endsWith(".json") ||
-              name.endsWith(".mol") ||
-              name.endsWith(".pdb") ||
-              name.endsWith(".ent") ||
-              name.endsWith(".poscar") ||
-              name.endsWith(".contcar") ||
-              name.endsWith(".vasp")
-            )
-          )
-            return;
-
-          try {
-            const text = await f.text();
-            const ev2 = new Event("tem-file-drop", { bubbles: true });
-            ev2.temFile = f;
-            ev2.temText = text;
-            document.dispatchEvent(ev2);
-          } catch (_) {}
-        });
       });
     </script>
   </head>
@@ -895,6 +1130,7 @@
                 <input
                   id="file-input"
                   type="file"
+                  multiple
                   accept=".cif,.csv,.xyz,.json,.mol,.pdb,.ent,.poscar,.contcar,.vasp"
                 />
                 <div class="sources">
@@ -909,38 +1145,223 @@
               </div>
 
               <div class="tem_full">
-                <label id="lblViewControls"
-                  >Столик (панорамування + обертання)</label
-                >
-                <div class="viewpad" aria-label="Керування в’юхою">
-                  <button class="viewbtn" id="btn-view-rotl" title="⟲">
-                    ⟲
-                  </button>
-                  <button class="viewbtn" id="btn-view-up" title="↑">↑</button>
-                  <button class="viewbtn" id="btn-view-rotr" title="⟳">
-                    ⟳
-                  </button>
-
-                  <button class="viewbtn" id="btn-view-left" title="←">
-                    ←
-                  </button>
-                  <button class="viewbtn" id="btn-view-reset" title="Reset">
-                    •
-                  </button>
-                  <button class="viewbtn" id="btn-view-right" title="→">
-                    →
-                  </button>
-
-                  <button class="viewbtn" id="btn-model-x90" title="X90">
-                    X90
-                  </button>
-                  <button class="viewbtn" id="btn-view-down" title="↓">
-                    ↓
-                  </button>
-                  <button class="viewbtn" id="btn-model-y90" title="Y90">
-                    Y90
-                  </button>
+                <div class="scene_panel">
+                  <div class="scene_panel_title" id="scene-title">Сцена</div>
+                  <div class="scene_panel_meta" id="scene-stats">
+                    Rendered: 0 / 0
+                  </div>
+                  <div id="scene-empty" class="scene_empty">Немає об’єктів</div>
+                  <div id="scene-list"></div>
                 </div>
+              </div>
+
+              <div class="tem_full">
+                <label id="lblViewControls">Редагування об’єкта</label>
+                <div class="table_controls" aria-label="Керування об’єктом">
+                  <div class="table_control_group">
+                    <div class="table_control_title" id="lblPanControls">
+                      Move
+                    </div>
+                    <div class="viewpad" aria-label="Move XY">
+                      <span></span>
+                      <button
+                        class="viewbtn"
+                        id="btn-pan-up"
+                        data-i18n-title="tooltip.obj.move.up"
+                      >
+                        ↑
+                      </button>
+                      <span></span>
+
+                      <button
+                        class="viewbtn"
+                        id="btn-pan-left"
+                        data-i18n-title="tooltip.obj.move.left"
+                      >
+                        ←
+                      </button>
+                      <button
+                        class="viewbtn"
+                        id="btn-pan-home"
+                        data-i18n-title="tooltip.obj.move.resetpos"
+                      >
+                        ⨀
+                      </button>
+                      <button
+                        class="viewbtn"
+                        id="btn-pan-right"
+                        data-i18n-title="tooltip.obj.move.right"
+                      >
+                        →
+                      </button>
+
+                      <span></span>
+                      <button
+                        class="viewbtn"
+                        id="btn-pan-down"
+                        data-i18n-title="tooltip.obj.move.down"
+                      >
+                        ↓
+                      </button>
+                      <span></span>
+                    </div>
+                    <div class="edit_aux_row">
+                      <button
+                        class="viewbtn"
+                        id="btn-move-zm"
+                        data-i18n-title="tooltip.obj.move.zm"
+                      >
+                        Z−
+                      </button>
+                      <button
+                        class="viewbtn"
+                        id="btn-move-zp"
+                        data-i18n-title="tooltip.obj.move.zp"
+                      >
+                        Z+
+                      </button>
+                    </div>
+                    <div class="object_edit_values" id="lbl-move-values">
+                      x=0.0, y=0.0, z=0.0 Å
+                    </div>
+                  </div>
+
+                  <div class="table_control_group">
+                    <div class="table_control_title" id="lblRotateControls">
+                      Rotate
+                    </div>
+                    <div class="viewpad" aria-label="Rotate XY">
+                      <span></span>
+                      <button
+                        class="viewbtn"
+                        id="btn-rot-xp"
+                        data-i18n-title="tooltip.obj.rot.xp"
+                      >
+                        ↑
+                      </button>
+                      <span></span>
+
+                      <button
+                        class="viewbtn"
+                        id="btn-rot-ym"
+                        data-i18n-title="tooltip.obj.rot.ym"
+                      >
+                        ←
+                      </button>
+                      <button
+                        class="viewbtn"
+                        id="btn-rot-home"
+                        data-i18n-title="tooltip.obj.rot.resetrot"
+                      >
+                        ⨀
+                      </button>
+                      <button
+                        class="viewbtn"
+                        id="btn-rot-yp"
+                        data-i18n-title="tooltip.obj.rot.yp"
+                      >
+                        →
+                      </button>
+
+                      <span></span>
+                      <button
+                        class="viewbtn"
+                        id="btn-rot-xm"
+                        data-i18n-title="tooltip.obj.rot.xm"
+                      >
+                        ↓
+                      </button>
+                      <span></span>
+                    </div>
+                    <div class="edit_aux_row">
+                      <button
+                        class="viewbtn"
+                        id="btn-rot-zm"
+                        data-i18n-title="tooltip.obj.rot.zm"
+                      >
+                        ⟲
+                      </button>
+                      <button
+                        class="viewbtn"
+                        id="btn-rot-zp"
+                        data-i18n-title="tooltip.obj.rot.zp"
+                      >
+                        ⟳
+                      </button>
+                    </div>
+                    <div class="object_edit_values" id="lbl-rotate-values">
+                      x=0.0, y=0.0, z=0.0°
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="object_edit_reset"
+                  id="btn-reset-object-edits"
+                  data-i18n-title="tooltip.reset.edits.object"
+                >
+                  <span id="btn-reset-object-edits-label"
+                    >Reset edits: object</span
+                  >
+                </button>
+
+                <details
+                  class="object_advanced_details"
+                  id="object-advanced-details"
+                >
+                  <summary id="ui.objectAdvanced.title">
+                    Додаткове редагування
+                  </summary>
+                  <div class="clipz_block">
+                    <label class="clipz_toggle">
+                      <input
+                        type="checkbox"
+                        id="cb-clipz-enabled"
+                        data-i18n-title="tooltip.clipZ"
+                      />
+                      <span id="ui.clipZ.enable">Обрізка шарів (Z-clip)</span>
+                    </label>
+                    <div class="clipz_ranges">
+                      <div>
+                        <label id="ui.clipZ.min" for="rng-clipz-min"
+                          >Z min</label
+                        >
+                        <input
+                          type="range"
+                          id="rng-clipz-min"
+                          min="0"
+                          max="1"
+                          step="0.01"
+                          value="0"
+                        />
+                      </div>
+                      <div>
+                        <label id="ui.clipZ.max" for="rng-clipz-max"
+                          >Z max</label
+                        >
+                        <input
+                          type="range"
+                          id="rng-clipz-max"
+                          min="0"
+                          max="1"
+                          step="0.01"
+                          value="1"
+                        />
+                      </div>
+                    </div>
+                    <div class="clipz_values" id="lbl-clipz-values">
+                      min=0.00 max=1.00
+                    </div>
+                    <button
+                      type="button"
+                      class="object_edit_reset"
+                      id="btn-clipz-reset"
+                      data-i18n-title="tooltip.clipZ"
+                    >
+                      Reset clip
+                    </button>
+                  </div>
+                </details>
               </div>
 
               <div class="tem_full" id="mode-block">
@@ -1188,16 +1609,56 @@
               </li>
             </ol>
           </div>
-
-          <h4 id="authorsLabel">Автори:</h4>
-          <h4>
-            <a class="black_link" href="https://nure.ua/en/staff/pavlo-kozub"
-              >Павло Козуб</a
-            >
-          </h4>
-          <h4><a class="black_link" href="">Ярослав Теляшенко</a></h4>
         </div>
+
         <div class="tem_view">
+          <div class="authors_panel">
+            <div class="authors_panel_row">
+              <h2 class="authors_panel_title" id="authorsLabel">Автори:</h2>
+              <div class="authors_list">
+                <a
+                  class="author_link"
+                  href="https://people.epfl.ch/nataliia.miroshnichenko"
+                  id="author_1"
+                  >Наталія Їлмаз</a
+                >
+                <a class="author_link" href="" id="author_2"
+                  >Ярослав Теляшенко</a
+                >
+                <a
+                  class="author_link"
+                  href="https://nure.ua/en/staff/pavlo-kozub"
+                  id="author_3"
+                  >Павло Козуб</a
+                >
+              </div>
+            </div>
+            <div class="authors_panel_row">
+              <div class="cooperation_title" id="cooperationLabel">
+                У кооперації
+              </div>
+              <div class="coop_logos">
+                <a
+                  class="coop_logo_link"
+                  href="https://nure.ua/"
+                  target="_blank"
+                  rel="noopener"
+                  title="Kharkiv National University of Radio Electronics"
+                >
+                  <img src="./samples/nure.jpg" alt="NURE" id="coopLogoNure" />
+                </a>
+                <a
+                  class="coop_logo_link"
+                  href="https://www.epfl.ch/en/"
+                  target="_blank"
+                  rel="noopener"
+                  title="Federal School of Technology in Lausanne"
+                >
+                  <img src="./samples/epfl.jpg" alt="EPFL" id="coopLogoEpfl" />
+                </a>
+              </div>
+            </div>
+          </div>
           <div class="main-block tem_view_sticky">
             <h2 id="vizTitle">Візуалізатор</h2>
 
@@ -1231,14 +1692,37 @@
                   <span id="lblExport">Експортувати PNG</span>
                 </button>
               </div>
-
               <div>
-                <button class="btn" id="resetSettings" type="button">
-                  <span id="resetSettingsLabel">Скинути налаштування</span>
+                <button
+                  class="btn"
+                  id="btn-export-xyz"
+                  type="button"
+                  data-i18n-title="tooltip.export.xyz"
+                >
+                  <span id="lblExportXYZ">Експорт XYZ</span>
                 </button>
               </div>
-            </div>
-            <div class="canvas_tools">
+
+              <div>
+                <button
+                  class="btn"
+                  id="resetSettings"
+                  type="button"
+                  data-i18n-title="tooltip.reset.ui"
+                >
+                  <span id="resetSettingsLabel">Reset UI settings</span>
+                </button>
+              </div>
+              <div>
+                <button
+                  class="btn"
+                  id="btn-reset-all-object-edits"
+                  type="button"
+                  data-i18n-title="tooltip.reset.edits.all"
+                >
+                  <span id="btnResetAllObjectEditsLabel">Reset edits: all</span>
+                </button>
+              </div>
               <div>
                 <button class="btn" id="btn-gif-start">
                   <span id="lblGifStart">● Start GIF</span>
