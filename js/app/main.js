@@ -11,6 +11,7 @@
 
 import { build_system_from_input } from "./phases.js";
 import { render_image } from "../render/renderer.js";
+import { draw_stm_orange_frame_to_canvas } from "../render/render_common.js";
 import {
   make_view_state,
   panBy,
@@ -19,6 +20,7 @@ import {
   resetRotation,
 } from "./camera.js";
 import { GifRecorder } from "../export/gif_recorder.js";
+import { RDKit } from "../chem/rdkit_wrap.js";
 
 export async function interactive_em_image(smiles_text, _unused) {
   function el(id) {
@@ -65,12 +67,24 @@ export async function interactive_em_image(smiles_text, _unused) {
   var rowScanlines = el("row-scanlines");
   var rngTip = el("rng-tip");
   var rowTip = el("row-tip");
+  var rowBonds = el("row-bonds");
+  var rowFocus = el("row-focus");
+  var rowDof = el("row-dof");
+  var rowBg = el("row-bg");
 
   var tbNx = el("tb-nx");
   var tbNy = el("tb-ny");
   var tbNz = el("tb-nz");
   var tbSmiles = el("tb-smiles");
   var lblSmilesErr = el("smiles-error");
+  var smilesStatusWrap = el("smiles-status");
+  var smilesStatusTitle = el("smiles-status-title");
+  var smilesStatusValidation = el("smiles-status-validation");
+  var smilesStatusGeometry = el("smiles-status-geometry");
+  var smilesStatusHydrogen = el("smiles-status-hydrogen");
+  var smilesStatusInputWarnings = el("smiles-status-input-warnings");
+  var smilesStatusBackendWarnings = el("smiles-status-backend-warnings");
+  var smilesStatusGeometryWarnings = el("smiles-status-geometry-warnings");
   var selSamples = el("sel-samples");
   var lblSamplesStatus = el("lblSamplesStatus");
   var btnResetSettings = el("resetSettings");
@@ -280,7 +294,23 @@ export async function interactive_em_image(smiles_text, _unused) {
 
   // SMILES atom identity cache (fixes cases where SMILES provider returns wrong/empty Z/sym).
   // Filled on successful SMILES build; applied before rendering + element overrides table.
-  var _smilesAtomZCache = { token: "", Zs: null, syms: null };
+  var _smilesAtomZCache = {
+    token: "",
+    Zs: null,
+    syms: null,
+    uiUniqueSymbols: null,
+    hydrogenMode: "unsupported",
+    hasHydrogenElement: false,
+    validation: null,
+    geometryMode: "failed",
+    coordsAvailable: false,
+    degenerateCoords: false,
+    usedFallbackCoords: false,
+    warningGroups: null,
+    warnings: null,
+    diag: null,
+  };
+  var smilesUiStatusOverride = null;
 
   // Active file is materialized as a temporary blob URL only for the active scene object.
   var file_state = {
@@ -384,45 +414,261 @@ export async function interactive_em_image(smiles_text, _unused) {
     if (t) lastSmilesErrorToken = t;
   }
 
-  // Validate typed SMILES using RDKit (prevents silent fallback to 'O' inside phases/builders).
-  // Returns true if SMILES looks valid (or RDKit not available), false if invalid.
+  // Validate typed SMILES via backend-adapter (prevents silent fallback to 'O' inside phases/builders).
+  // Returns a reason-aware result object.
   async function rdkitValidateSmiles(smiles) {
     smiles = trimStr(smiles);
-    if (!smiles) return true; // empty is allowed -> will fall back to 'O' by design
-    var mol = null;
-    try {
-      // RDKit is initialized in index.html as window.RDKitReady = initRDKitModule(...)
-      if (!window.RDKitReady) return true;
-      var rdkit = await window.RDKitReady;
-      if (!rdkit) return true;
-
-      // rdkit.js API: get_mol(smiles) throws on invalid
-      if (typeof rdkit.get_mol === "function") mol = rdkit.get_mol(smiles);
-      else if (typeof rdkit.getMol === "function") mol = rdkit.getMol(smiles);
-      else return true; // unknown API -> don't block
-
-      if (!mol) return false;
-
-      var nAtoms = 1;
-      try {
-        if (typeof mol.get_num_atoms === "function")
-          nAtoms = mol.get_num_atoms();
-        else if (typeof mol.getNumAtoms === "function")
-          nAtoms = mol.getNumAtoms();
-      } catch (e1) {
-        nAtoms = 1;
-      }
-
-      try {
-        mol.delete();
-      } catch (e2) {}
-      return (nAtoms | 0) > 0;
-    } catch (e) {
-      try {
-        if (mol) mol.delete();
-      } catch (e3) {}
-      return false;
+    if (!smiles) {
+      return { ok: true, reason: "empty_input", atomCount: 0, warnings: [] };
     }
+    try {
+      if (!window.RDKitReady) {
+        return { ok: true, reason: "rdkit_unavailable", atomCount: 0, warnings: [] };
+      }
+      var mod = await window.RDKitReady;
+      if (!mod) {
+        return { ok: true, reason: "rdkit_unavailable", atomCount: 0, warnings: [] };
+      }
+      if (typeof RDKit.ensure_smiles_backends_ready === "function") {
+        var ready = await RDKit.ensure_smiles_backends_ready();
+        if (ready && ready.rdkit && typeof RDKit.setModule === "function") {
+          RDKit.setModule(ready.rdkit);
+        }
+      } else if (typeof RDKit.setModule === "function") {
+        RDKit.setModule(mod);
+      }
+      var res = RDKit.validate_smiles_backend(smiles);
+      if (res && typeof res === "object") return res;
+    } catch (e) {}
+    return {
+      ok: false,
+      reason: "backend_invalid",
+      atomCount: 0,
+      warnings: ["backend_invalid"],
+    };
+  }
+
+  function cloneWarningGroupArray(arr) {
+    return Array.isArray(arr) ? arr.slice(0) : [];
+  }
+
+  function cloneWarningGroups(groups) {
+    var src = groups && typeof groups === "object" ? groups : {};
+    return {
+      input: cloneWarningGroupArray(src.input),
+      backend: cloneWarningGroupArray(src.backend),
+      geometry: cloneWarningGroupArray(src.geometry),
+    };
+  }
+
+  function pushUniqueString(arr, value) {
+    var text = String(value || "").trim();
+    if (!text) return;
+    if (!Array.isArray(arr)) return;
+    if (arr.indexOf(text) >= 0) return;
+    arr.push(text);
+  }
+
+  function mergeWarningGroups(a, b) {
+    var out = cloneWarningGroups(a);
+    var src = cloneWarningGroups(b);
+    ["input", "backend", "geometry"].forEach(function (key) {
+      for (var i = 0; i < src[key].length; i++) pushUniqueString(out[key], src[key][i]);
+    });
+    return out;
+  }
+
+  function mergeWarningLists() {
+    var out = [];
+    for (var i = 0; i < arguments.length; i++) {
+      var arr = Array.isArray(arguments[i]) ? arguments[i] : [];
+      for (var j = 0; j < arr.length; j++) pushUniqueString(out, arr[j]);
+    }
+    return out;
+  }
+
+  function buildValidationFromBackendResult(result) {
+    return {
+      ok: !!(result && result.ok),
+      reason:
+        result && result.ok
+          ? "ok"
+          : result && Array.isArray(result.warnings) && result.warnings.length
+            ? result.warnings[0]
+            : "backend_invalid",
+      atomCount: result && result.identity ? result.identity.atomCount | 0 : 0,
+      warnings: result && Array.isArray(result.warnings) ? result.warnings.slice(0) : [],
+    };
+  }
+
+  function makeSmilesStatusCacheFromValidation(token, validation) {
+    var reason = validation && validation.reason ? String(validation.reason) : "backend_invalid";
+    var warnings = Array.isArray(validation && validation.warnings)
+      ? validation.warnings.slice(0)
+      : reason && reason !== "ok"
+        ? [reason]
+        : [];
+    var groups = { input: [], backend: [], geometry: [] };
+    var target = reason.indexOf("empty_input") === 0 ? groups.input : groups.backend;
+    for (var i = 0; i < warnings.length; i++) pushUniqueString(target, warnings[i]);
+    return {
+      token: token || "",
+      Zs: null,
+      syms: null,
+      uiUniqueSymbols: null,
+      hydrogenMode: "unsupported",
+      hasHydrogenElement: false,
+      validation: {
+        ok: !!(validation && validation.ok),
+        reason: reason,
+        atomCount: validation && validation.atomCount ? validation.atomCount | 0 : 0,
+        warnings: warnings.slice(0),
+      },
+      geometryMode: "failed",
+      coordsAvailable: false,
+      degenerateCoords: false,
+      usedFallbackCoords: false,
+      warningGroups: groups,
+      warnings: warnings.slice(0),
+      diag: null,
+    };
+  }
+
+  function getSmilesReasonText(reason) {
+    var key = "smiles_reason_" + String(reason || "backend_invalid");
+    return tr(key, String(reason || "backend_invalid"));
+  }
+
+  function getSmilesWarningText(code) {
+    var key = "smiles_warning_" + String(code || "");
+    return tr(key, String(code || ""));
+  }
+
+  function getSmilesGeometryText(modeName) {
+    return tr("smiles_geometry_" + String(modeName || "failed"), String(modeName || "failed"));
+  }
+
+  function getSmilesHydrogenText(modeName) {
+    return tr("smiles_hydrogen_" + String(modeName || "unsupported"), String(modeName || "unsupported"));
+  }
+
+  function setSmilesStatusLine(node, text) {
+    if (!node) return;
+    var hasText = !!(typeof text === "string" && text.trim());
+    node.textContent = hasText ? text : "";
+    try {
+      node.classList.toggle("ui_hidden", !hasText);
+    } catch (e) {
+      node.style.display = hasText ? "" : "none";
+    }
+  }
+
+  function setSmilesStatusVisible(on) {
+    if (!smilesStatusWrap) return;
+    try {
+      smilesStatusWrap.classList.toggle("ui_hidden", !on);
+    } catch (e) {
+      smilesStatusWrap.style.display = on ? "" : "none";
+    }
+  }
+
+  function renderSmilesStatus(status) {
+    if (!smilesStatusWrap) return;
+    if (!status) {
+      setSmilesStatusVisible(false);
+      setSmilesStatusLine(smilesStatusValidation, "");
+      setSmilesStatusLine(smilesStatusGeometry, "");
+      setSmilesStatusLine(smilesStatusHydrogen, "");
+      setSmilesStatusLine(smilesStatusInputWarnings, "");
+      setSmilesStatusLine(smilesStatusBackendWarnings, "");
+      setSmilesStatusLine(smilesStatusGeometryWarnings, "");
+      return;
+    }
+
+    setSmilesStatusVisible(true);
+    if (smilesStatusTitle) {
+      smilesStatusTitle.textContent = tr("ui.smiles.status.title", "SMILES status");
+    }
+
+    var validationOk = !!status.validationOk;
+    var validationReason = status.validationReason || (validationOk ? "ok" : "backend_invalid");
+    var validationText = tr("ui.smiles.status.validation", "Validation") + ": " +
+      (validationOk ? tr("ui.smiles.status.ok", "OK") : tr("ui.smiles.status.error", "Error"));
+    if (validationReason && validationReason !== "ok") {
+      validationText += " — " + getSmilesReasonText(validationReason);
+    }
+    setSmilesStatusLine(smilesStatusValidation, validationText);
+
+    var geometryText = "";
+    if (status.geometryMode) {
+      geometryText = tr("ui.smiles.status.geometry", "Geometry") + ": " + getSmilesGeometryText(status.geometryMode);
+      if (status.coordsAvailable === false && status.geometryMode !== "failed") {
+        geometryText += " · " + tr("ui.smiles.status.noCoords", "no coords");
+      }
+    }
+    setSmilesStatusLine(smilesStatusGeometry, geometryText);
+
+    var hydrogenText = "";
+    if (status.hydrogenMode) {
+      hydrogenText = tr("ui.smiles.status.hydrogen", "Hydrogen") + ": " + getSmilesHydrogenText(status.hydrogenMode);
+      var diag = status.diag && typeof status.diag === "object" ? status.diag : null;
+      if (diag) {
+        var hParts = [];
+        if (Number.isFinite(diag.explicitHydrogenCount)) {
+          hParts.push(tr("ui.smiles.status.hExplicit", "exp") + "=" + (diag.explicitHydrogenCount | 0));
+        }
+        if (Number.isFinite(diag.implicitHydrogenCount)) {
+          hParts.push(tr("ui.smiles.status.hImplicit", "imp") + "=" + (diag.implicitHydrogenCount | 0));
+        }
+        if (hParts.length) hydrogenText += " (" + hParts.join(", ") + ")";
+      }
+    }
+    setSmilesStatusLine(smilesStatusHydrogen, hydrogenText);
+
+    var groups = cloneWarningGroups(status.warningGroups);
+    var inputText = groups.input.length
+      ? tr("ui.smiles.status.inputWarnings", "Input") + ": " + groups.input.map(getSmilesWarningText).join("; ")
+      : "";
+    var backendText = groups.backend.length
+      ? tr("ui.smiles.status.backendWarnings", "Backend") + ": " + groups.backend.map(getSmilesWarningText).join("; ")
+      : "";
+    var geometryWarnText = groups.geometry.length
+      ? tr("ui.smiles.status.geometryWarnings", "Geometry warnings") + ": " + groups.geometry.map(getSmilesWarningText).join("; ")
+      : "";
+
+    setSmilesStatusLine(smilesStatusInputWarnings, inputText);
+    setSmilesStatusLine(smilesStatusBackendWarnings, backendText);
+    setSmilesStatusLine(smilesStatusGeometryWarnings, geometryWarnText);
+  }
+
+  function buildSmilesStatusFromCache(cache) {
+    if (!cache || typeof cache !== "object") return null;
+    var validation = cache.validation && typeof cache.validation === "object"
+      ? cache.validation
+      : { ok: true, reason: "ok", atomCount: 0, warnings: [] };
+    return {
+      validationOk: !!validation.ok,
+      validationReason: validation.reason || (validation.ok ? "ok" : "backend_invalid"),
+      geometryMode: cache.geometryMode || (validation.ok ? null : "failed"),
+      coordsAvailable: typeof cache.coordsAvailable === "boolean" ? cache.coordsAvailable : null,
+      hydrogenMode: cache.hydrogenMode || "unsupported",
+      warningGroups: cloneWarningGroups(cache.warningGroups),
+      warnings: Array.isArray(cache.warnings) ? cache.warnings.slice(0) : [],
+      diag: cache.diag || null,
+    };
+  }
+
+  function refreshSmilesStatus() {
+    var active = getActiveSceneObject();
+    if (active && active.source && active.source.kind === "smiles") {
+      renderSmilesStatus(buildSmilesStatusFromCache(active._smilesAtomZCache));
+      return;
+    }
+    if (smilesUiStatusOverride) {
+      renderSmilesStatus(smilesUiStatusOverride);
+      return;
+    }
+    renderSmilesStatus(null);
   }
 
   function _normElemSym(s) {
@@ -431,270 +677,6 @@ export async function interactive_em_image(smiles_text, _unused) {
     if (!s) return null;
     if (s.length === 1) return s.toUpperCase();
     return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
-  }
-
-  function _rdkitParseAtomSymsFromMolblock(molblock) {
-    if (typeof molblock !== "string" || !molblock) return null;
-    var lines = molblock.replace(/\r/g, "").split("\n");
-    if (!lines.length) return null;
-
-    var hasV3000 = false;
-    for (var i = 0; i < Math.min(lines.length, 12); i++) {
-      if (String(lines[i] || "").indexOf("V3000") >= 0) {
-        hasV3000 = true;
-        break;
-      }
-    }
-
-    if (hasV3000) {
-      var out3 = [];
-      var inAtoms = false;
-      for (var j = 0; j < lines.length; j++) {
-        var ln3 = String(lines[j] || "").trim();
-        if (!ln3) continue;
-        if (ln3.indexOf("M  V30 BEGIN ATOM") === 0) {
-          inAtoms = true;
-          continue;
-        }
-        if (ln3.indexOf("M  V30 END ATOM") === 0) break;
-        if (!inAtoms) continue;
-        if (ln3.indexOf("M  V30 ") !== 0) continue;
-        var parts3 = ln3.split(/\s+/);
-        if (parts3.length < 5) continue;
-        var sym3 = _normElemSym(parts3[3]);
-        if (sym3) out3.push(sym3);
-      }
-      return out3.length ? out3 : null;
-    }
-
-    if (lines.length < 4) return null;
-    var counts = String(lines[3] || "");
-    var atomCount = parseInt(counts.slice(0, 3), 10);
-    if (!Number.isFinite(atomCount) || atomCount <= 0) {
-      var m = counts.match(/^\s*(\d+)/);
-      atomCount = m ? parseInt(m[1], 10) : 0;
-    }
-    atomCount = atomCount | 0;
-    if (atomCount <= 0) return null;
-    if (lines.length < 4 + atomCount) return null;
-
-    var out2 = new Array(atomCount);
-    for (var k = 0; k < atomCount; k++) {
-      var ln2 = String(lines[4 + k] || "");
-      var sym2 = _normElemSym(ln2.slice(31, 34));
-      if (!sym2) {
-        var parts2 = ln2.trim().split(/\s+/);
-        if (parts2.length >= 4) sym2 = _normElemSym(parts2[3]);
-      }
-      out2[k] = sym2 || null;
-    }
-    return out2;
-  }
-
-  function _rdkitParseAtomInfoFromJson(jsonText) {
-    if (typeof jsonText !== "string" || !jsonText) return null;
-
-    var root = null;
-    try {
-      root = JSON.parse(jsonText);
-    } catch (e0) {
-      return null;
-    }
-    if (!root || typeof root !== "object") return null;
-
-    var mol = root;
-    if (Array.isArray(root.molecules) && root.molecules.length)
-      mol = root.molecules[0];
-    if (!mol || typeof mol !== "object") return null;
-
-    var atoms = Array.isArray(mol.atoms)
-      ? mol.atoms
-      : mol.mol && Array.isArray(mol.mol.atoms)
-        ? mol.mol.atoms
-        : null;
-    if (!Array.isArray(atoms) || !atoms.length) return null;
-
-    var syms = new Array(atoms.length);
-    var zs = new Array(atoms.length);
-    var any = false;
-
-    for (var i = 0; i < atoms.length; i++) {
-      var a = atoms[i] || {};
-      var z = 0;
-      if (Number.isFinite(a.z)) z = a.z | 0;
-      else if (Number.isFinite(a.atomicNum)) z = a.atomicNum | 0;
-      else if (Number.isFinite(a.atomic_num)) z = a.atomic_num | 0;
-
-      var sym = null;
-      if (z > 0 && _Z2SYM && z < _Z2SYM.length) sym = _Z2SYM[z];
-      if (!sym) {
-        sym = _normElemSym(
-          a.symbol || a.sym || a.el || a.element || a.atom || a.label,
-        );
-      }
-      if (!z && sym && _SYM2Z && _SYM2Z[sym]) z = _SYM2Z[sym] | 0;
-
-      syms[i] = sym || null;
-      zs[i] = z > 0 ? z : 0;
-      if (syms[i] || zs[i]) any = true;
-    }
-
-    return any ? { Zs: zs, syms: syms } : null;
-  }
-
-  // Extract per-atom atomic numbers/symbols from RDKit for SMILES.
-  // Returns { Zs:Array<int>|null, syms:Array<string>|null } or null.
-  async function rdkitGetAtomZs(smiles) {
-    smiles = trimStr(smiles);
-    if (!smiles) smiles = "O";
-
-    var mol = null;
-    try {
-      if (!window.RDKitReady) return null;
-      var rdkit = await window.RDKitReady;
-      if (!rdkit) return null;
-
-      if (typeof rdkit.get_mol === "function") mol = rdkit.get_mol(smiles);
-      else if (typeof rdkit.getMol === "function") mol = rdkit.getMol(smiles);
-      else return null;
-
-      if (!mol) return null;
-
-      var n = 0;
-      try {
-        if (typeof mol.get_num_atoms === "function") n = mol.get_num_atoms();
-        else if (typeof mol.getNumAtoms === "function") n = mol.getNumAtoms();
-      } catch (e0) {
-        n = 0;
-      }
-
-      n = n | 0;
-      if (n <= 0) {
-        try {
-          mol.delete();
-        } catch (e1) {}
-        return null;
-      }
-
-      var zs = new Array(n);
-      var syms = new Array(n);
-      var okCount = 0;
-
-      for (var i = 0; i < n; i++) {
-        var at = null;
-        try {
-          if (typeof mol.get_atom_with_idx === "function")
-            at = mol.get_atom_with_idx(i);
-          else if (typeof mol.getAtomWithIdx === "function")
-            at = mol.getAtomWithIdx(i);
-        } catch (e2) {
-          at = null;
-        }
-
-        var z = 0;
-        var sym = null;
-        if (at) {
-          try {
-            if (typeof at.get_atomic_num === "function")
-              z = at.get_atomic_num();
-            else if (typeof at.getAtomicNum === "function")
-              z = at.getAtomicNum();
-          } catch (e3) {
-            z = 0;
-          }
-          try {
-            if (typeof at.get_symbol === "function") sym = at.get_symbol();
-            else if (typeof at.getSymbol === "function") sym = at.getSymbol();
-          } catch (e4) {
-            sym = null;
-          }
-          try {
-            if (typeof at.delete === "function") at.delete();
-          } catch (e5) {}
-        }
-
-        z = (z | 0) > 0 ? z | 0 : 0;
-        sym = _normElemSym(sym);
-        if (!sym && z > 0 && _Z2SYM && z < _Z2SYM.length) sym = _Z2SYM[z];
-        if (!z && sym && _SYM2Z && _SYM2Z[sym]) z = _SYM2Z[sym] | 0;
-
-        zs[i] = z;
-        syms[i] = sym || null;
-        if (z > 0 || sym) okCount++;
-      }
-
-      if (okCount < n) {
-        var infoJson = null;
-        try {
-          if (typeof mol.get_json === "function") {
-            infoJson = _rdkitParseAtomInfoFromJson(mol.get_json());
-          } else if (typeof mol.getJson === "function") {
-            infoJson = _rdkitParseAtomInfoFromJson(mol.getJson());
-          }
-        } catch (e6) {
-          infoJson = null;
-        }
-        if (
-          infoJson &&
-          Array.isArray(infoJson.syms) &&
-          infoJson.syms.length === n
-        ) {
-          for (var j = 0; j < n; j++) {
-            if (!syms[j] && infoJson.syms[j]) syms[j] = infoJson.syms[j];
-            if (
-              (!zs[j] || zs[j] <= 0) &&
-              infoJson.Zs &&
-              (infoJson.Zs[j] | 0) > 0
-            ) {
-              zs[j] = infoJson.Zs[j] | 0;
-            }
-          }
-        }
-      }
-
-      var needMolblock = false;
-      for (var t = 0; t < n; t++) {
-        if (!syms[t]) {
-          needMolblock = true;
-          break;
-        }
-      }
-      if (needMolblock) {
-        var molSyms = null;
-        try {
-          if (typeof mol.get_molblock === "function")
-            molSyms = _rdkitParseAtomSymsFromMolblock(mol.get_molblock());
-          else if (typeof mol.getMolblock === "function")
-            molSyms = _rdkitParseAtomSymsFromMolblock(mol.getMolblock());
-        } catch (e7) {
-          molSyms = null;
-        }
-        if (Array.isArray(molSyms) && molSyms.length === n) {
-          for (var q = 0; q < n; q++) {
-            if (!syms[q] && molSyms[q]) syms[q] = molSyms[q];
-          }
-        }
-      }
-
-      for (var u = 0; u < n; u++) {
-        if ((!zs[u] || zs[u] <= 0) && syms[u] && _SYM2Z && _SYM2Z[syms[u]]) {
-          zs[u] = _SYM2Z[syms[u]] | 0;
-        }
-        if (!syms[u] && (zs[u] | 0) > 0 && _Z2SYM && zs[u] < _Z2SYM.length) {
-          syms[u] = _Z2SYM[zs[u] | 0];
-        }
-      }
-
-      try {
-        mol.delete();
-      } catch (e8) {}
-      return { Zs: zs, syms: syms };
-    } catch (e) {
-      try {
-        if (mol) mol.delete();
-      } catch (e9) {}
-      return null;
-    }
   }
 
   function _smilesSourceIdx(a) {
@@ -867,39 +849,53 @@ export async function interactive_em_image(smiles_text, _unused) {
     var added = [];
     for (var i = 0; i < vals.length; i++) {
       var val = vals[i];
-      var valid = await rdkitValidateSmiles(val);
-      if (!valid) {
-        invalid.push(val);
+      var validation = await rdkitValidateSmiles(val);
+      if (!validation || !validation.ok) {
+        invalid.push({ value: val, validation: validation || { ok: false, reason: "backend_invalid", atomCount: 0, warnings: ["backend_invalid"] } });
         continue;
       }
-      var obj = createSceneObjectFromSmiles(val);
+      var obj = findReusableSmilesSceneObject(val);
+      if (obj) {
+        obj = prepareSmilesSceneObjectForReuse(obj, val);
+      } else {
+        obj = createSceneObjectFromSmiles(val);
+      }
       if (!obj) {
-        invalid.push(val);
+        invalid.push({ value: val, validation: { ok: false, reason: "backend_invalid", atomCount: 0, warnings: ["backend_invalid"] } });
         continue;
       }
-      scene.objects.push(obj);
+      if (findSceneObjectIndexById(obj.id) < 0) scene.objects.push(obj);
       added.push(obj);
     }
 
     if (invalid.length) {
+      var firstInvalid = invalid[0];
       var msg =
         invalid.length === 1
-          ? getSmilesInvalidMsg() + ": " + invalid[0]
+          ? getSmilesInvalidMsg() + ": " + firstInvalid.value + " — " + getSmilesReasonText(firstInvalid.validation && firstInvalid.validation.reason)
           : getSmilesInvalidMsg() + " (" + invalid.length + ")";
       setSmilesErrorVisible(true, msg);
-      maybeAlertSmilesError(msg, invalid.join(" | "), explicit);
+      maybeAlertSmilesError(msg, invalid.map(function (it) { return it.value; }).join(" | "), explicit);
+      if (!added.length) {
+        smilesUiStatusOverride = buildSmilesStatusFromCache(
+          makeSmilesStatusCacheFromValidation(firstInvalid.value, firstInvalid.validation),
+        );
+        refreshSmilesStatus();
+      }
     } else {
       setSmilesErrorVisible(false);
       lastSmilesErrorToken = "";
+      smilesUiStatusOverride = null;
+      refreshSmilesStatus();
     }
 
     if (!added.length) return;
 
     renderSceneList();
     saveSceneMetaToSession();
-    activateSceneObject(added[added.length - 1].id, {
+    await activateSceneObject(added[added.length - 1].id, {
       render: true,
-      rebuildCfg: { explicit: explicit },
+      rebuildCfg: { explicit: explicit, retryOnFail: !!opts.retryOnFail },
     });
   }
 
@@ -1117,6 +1113,45 @@ export async function interactive_em_image(smiles_text, _unused) {
       return String(a).localeCompare(String(b));
     });
     return out;
+  }
+
+
+  function sortElementSymbols(symbols) {
+    var seen = Object.create(null);
+    var out = [];
+    for (var i = 0; i < symbols.length; i++) {
+      var sym = _normElemSym(symbols[i]);
+      if (!sym || seen[sym]) continue;
+      seen[sym] = true;
+      out.push(sym);
+    }
+    out.sort(function (a, b) {
+      var za = _SYM2Z[a];
+      var zb = _SYM2Z[b];
+      if (Number.isFinite(za) && Number.isFinite(zb) && za !== zb)
+        return za - zb;
+      if (Number.isFinite(za) && !Number.isFinite(zb)) return -1;
+      if (!Number.isFinite(za) && Number.isFinite(zb)) return 1;
+      return String(a).localeCompare(String(b));
+    });
+    return out;
+  }
+
+  function mergeUiElementsFromSmilesCaches(elements) {
+    var out = Array.isArray(elements) ? elements.slice(0) : [];
+    if (!scene || !Array.isArray(scene.objects)) return sortElementSymbols(out);
+    for (var i = 0; i < scene.objects.length; i++) {
+      var obj = scene.objects[i];
+      if (!obj || obj.visible === false) continue;
+      if (!obj.source || obj.source.kind !== "smiles") continue;
+      var cache = obj._smilesAtomZCache;
+      if (!cache || !Array.isArray(cache.uiUniqueSymbols)) continue;
+      for (var j = 0; j < cache.uiUniqueSymbols.length; j++) {
+        var sym = _normElemSym(cache.uiUniqueSymbols[j]);
+        if (sym) out.push(sym);
+      }
+    }
+    return sortElementSymbols(out);
   }
 
   // ---- Element preview (single-atom) ----
@@ -1360,12 +1395,27 @@ export async function interactive_em_image(smiles_text, _unused) {
     return v;
   }
 
-  function getBackgroundGray() {
-    var bg = rngBg ? parseInt(rngBg.value, 10) : 127;
-    if (!Number.isFinite(bg)) bg = 127;
+  var lastEditableBackgroundGray = DEFAULT_UI.background_gray;
+
+  function setBackgroundGrayValue(value, rememberEditable) {
+    var bg = Number.isFinite(value) ? value : parseInt(value, 10);
+    if (!Number.isFinite(bg)) bg = DEFAULT_UI.background_gray;
     bg = Math.min(255, Math.max(0, bg | 0));
+    if (rngBg) rngBg.value = String(bg);
     if (lblBg) lblBg.textContent = String(bg);
+    if (rememberEditable !== false && mode !== "STM") {
+      lastEditableBackgroundGray = bg;
+    }
     return bg;
+  }
+
+  function getBackgroundGray() {
+    if (mode === "STM") {
+      return setBackgroundGrayValue(0, false);
+    }
+    var bg = rngBg ? parseInt(rngBg.value, 10) : lastEditableBackgroundGray;
+    if (!Number.isFinite(bg)) bg = lastEditableBackgroundGray;
+    return setBackgroundGrayValue(bg, true);
   }
 
   // ---- microscopy mode presets (Wave 1: UI/UX only) ----
@@ -1421,6 +1471,16 @@ export async function interactive_em_image(smiles_text, _unused) {
     }
   }
 
+  function setModeControlVisibility(cfg) {
+    cfg = cfg || {};
+    setHidden(rowScanlines, !cfg.showScanlines);
+    setHidden(rowTip, !cfg.showTip);
+    setHidden(rowBonds, !cfg.showBonds);
+    setHidden(rowFocus, !cfg.showFocus);
+    setHidden(rowDof, !cfg.showDof);
+    setHidden(rowBg, !cfg.showBackground);
+  }
+
   function updateModeDescText() {
     if (!lblModeDesc) return;
     if (mode === "STM")
@@ -1453,6 +1513,7 @@ export async function interactive_em_image(smiles_text, _unused) {
     cfg = cfg || {};
     var save = cfg.save !== false;
     var rerender = cfg.rerender !== false;
+    var previousMode = mode;
 
     mode = normMode(newMode);
     if (selMode) selMode.value = mode;
@@ -1463,22 +1524,34 @@ export async function interactive_em_image(smiles_text, _unused) {
       } catch (e) {}
     }
 
-    // Visibility for mode-specific controls
-    setHidden(rowScanlines, mode !== "STM");
-    setHidden(rowTip, mode !== "AFM");
+    if (previousMode !== "STM") {
+      var editableBg = rngBg ? parseInt(rngBg.value, 10) : lastEditableBackgroundGray;
+      if (!Number.isFinite(editableBg)) editableBg = lastEditableBackgroundGray;
+      editableBg = Math.min(255, Math.max(0, editableBg | 0));
+      lastEditableBackgroundGray = editableBg;
+    }
 
-    // Global policies for this wave:
-    //  - TEM: focus + DoF active
-    //  - STM/AFM: focus + DoF disabled in UI; DoF is also hard-zeroed in render opts
-    if (rngDof) rngDof.value = clampRangeValue(rngDof, 0.0);
     setWrapDisabled(cbHide, false);
 
     // Bonds label is UI-only; keep it i18n-aware
     updateBondsLabelText();
 
     if (mode === "TEM") {
+      if (previousMode === "STM") {
+        setBackgroundGrayValue(lastEditableBackgroundGray, true);
+      }
+      setModeControlVisibility({
+        showScanlines: false,
+        showTip: false,
+        showBonds: false,
+        showFocus: true,
+        showDof: true,
+        showBackground: true,
+      });
+
       setWrapDisabled(rngFocus, false);
       setWrapDisabled(rngDof, false);
+      setWrapDisabled(rngBg, false);
 
       if (cbBonds) cbBonds.checked = false;
       setWrapDisabled(cbBonds, true);
@@ -1497,8 +1570,18 @@ export async function interactive_em_image(smiles_text, _unused) {
     }
 
     if (mode === "STM") {
+      setModeControlVisibility({
+        showScanlines: true,
+        showTip: false,
+        showBonds: false,
+        showFocus: false,
+        showDof: false,
+        showBackground: false,
+      });
+
       setWrapDisabled(rngFocus, true);
       setWrapDisabled(rngDof, true);
+      setWrapDisabled(rngBg, true);
 
       if (cbBonds) cbBonds.checked = false;
       setWrapDisabled(cbBonds, true);
@@ -1514,11 +1597,26 @@ export async function interactive_em_image(smiles_text, _unused) {
       if (cbScanlines) cbScanlines.checked = true;
       setWrapDisabled(cbScanlines, false);
       setWrapDisabled(rngTip, true);
+
+      setBackgroundGrayValue(0, false);
     }
 
     if (mode === "AFM") {
+      if (previousMode === "STM") {
+        setBackgroundGrayValue(lastEditableBackgroundGray, true);
+      }
+      setModeControlVisibility({
+        showScanlines: false,
+        showTip: false,
+        showBonds: true,
+        showFocus: false,
+        showDof: false,
+        showBackground: true,
+      });
+
       setWrapDisabled(rngFocus, true);
       setWrapDisabled(rngDof, true);
+      setWrapDisabled(rngBg, false);
 
       if (cbBonds) cbBonds.checked = true;
       setWrapDisabled(cbBonds, false);
@@ -1532,13 +1630,13 @@ export async function interactive_em_image(smiles_text, _unused) {
       if (rngContrast) rngContrast.value = clampRangeValue(rngContrast, 1.7);
 
       if (rngTip) rngTip.value = clampRangeValue(rngTip, 0.5);
-      setWrapDisabled(rngTip, false);
+      setWrapDisabled(rngTip, true);
       if (cbScanlines) cbScanlines.checked = false;
       setWrapDisabled(cbScanlines, true);
     }
 
     // Keep background label in sync
-    if (rngBg) getBackgroundGray();
+    getBackgroundGray();
 
     updateModeDescText();
     if (rerender) scheduleRender();
@@ -1579,7 +1677,7 @@ export async function interactive_em_image(smiles_text, _unused) {
     if (selMode) selMode.value = normMode(cfg.mode);
     if (rngZoom) rngZoom.value = String(cfg.zoom);
     if (rngContrast) rngContrast.value = String(cfg.contrast);
-    if (rngBg) rngBg.value = String(cfg.background_gray);
+    setBackgroundGrayValue(cfg.background_gray, true);
     if (rngBlur) rngBlur.value = String(cfg.blur_sigma);
     if (cbNoise) cbNoise.checked = !!cfg.noise_enabled;
     if (rngNoise) rngNoise.value = String(cfg.noise_stddev);
@@ -1692,7 +1790,17 @@ export async function interactive_em_image(smiles_text, _unused) {
 
     setNum(rngZoom, cfg.zoom);
     setNum(rngContrast, cfg.contrast);
-    setNum(rngBg, cfg.bg);
+    if (typeof cfg.bg !== "undefined" && cfg.bg !== null) {
+      if (mode === "STM") {
+        var storedBg = typeof cfg.bg === "number" ? cfg.bg : parseFloat(cfg.bg);
+        if (isFinite(storedBg)) {
+          storedBg = Math.min(255, Math.max(0, storedBg | 0));
+          lastEditableBackgroundGray = storedBg;
+        }
+      } else {
+        setBackgroundGrayValue(cfg.bg, true);
+      }
+    }
     setNum(rngBlur, cfg.blur);
     setNum(rngNoise, cfg.noiseStd);
     setNum(rngDof, cfg.dof);
@@ -2147,13 +2255,14 @@ export async function interactive_em_image(smiles_text, _unused) {
       .replace("{total}", String(total));
   }
 
-  function activateSceneObject(id, cfg) {
+  async function activateSceneObject(id, cfg) {
     cfg = cfg || {};
     if (!id) {
       scene.activeId = null;
       renderSceneList();
       updateTilesUiForActiveObject();
       saveSceneMetaToSession();
+      refreshSmilesStatus();
       if (cfg.render !== false) scheduleRender();
       return;
     }
@@ -2161,7 +2270,8 @@ export async function interactive_em_image(smiles_text, _unused) {
     updateTilesUiForActiveObject();
     renderSceneList();
     saveSceneMetaToSession();
-    if (cfg.render !== false) rebuildAndRender(cfg.rebuildCfg || {});
+    refreshSmilesStatus();
+    if (cfg.render !== false) await rebuildAndRender(cfg.rebuildCfg || {});
   }
 
   function addSceneObject(obj, cfg) {
@@ -2223,6 +2333,46 @@ export async function interactive_em_image(smiles_text, _unused) {
       createdAt: Date.now(),
       edits: defaultObjectEdits(),
     };
+  }
+
+  function findReusableSmilesSceneObject(smiles) {
+    var val = trimStr(smiles);
+    if (!val || !scene || !Array.isArray(scene.objects)) return null;
+
+    var active = getActiveSceneObject();
+    if (
+      active &&
+      active.source &&
+      active.source.kind === "smiles" &&
+      trimStr(active.source.smiles) === val
+    ) {
+      return active;
+    }
+
+    var match = null;
+    for (var i = scene.objects.length - 1; i >= 0; i--) {
+      var obj = scene.objects[i];
+      if (!obj || !obj.source || obj.source.kind !== "smiles") continue;
+      if (trimStr(obj.source.smiles) !== val) continue;
+      match = obj;
+      break;
+    }
+    return match;
+  }
+
+  function prepareSmilesSceneObjectForReuse(obj, smiles) {
+    if (!obj) return null;
+    var val = trimStr(smiles);
+    if (!val) return null;
+    obj.name = "SMILES: " + val;
+    obj.source = { kind: "smiles", smiles: val };
+    obj.tiles = null;
+    obj.visible = true;
+    obj._provider = null;
+    obj._providerMeta = null;
+    obj._providerKey = "";
+    obj._smilesAtomZCache = null;
+    return obj;
   }
 
   async function handleLocalFiles(files) {
@@ -2497,10 +2647,14 @@ export async function interactive_em_image(smiles_text, _unused) {
       }
 
       if (isSmiles) {
-        var _smOk = true;
+        var _validation = { ok: true, reason: "ok", atomCount: 0, warnings: [] };
         if (smilesToken) {
-          _smOk = await rdkitValidateSmiles(smilesToken);
-          if (!_smOk) return false;
+          _validation = await rdkitValidateSmiles(smilesToken);
+          if (!_validation.ok) {
+            obj._smilesAtomZCache = makeSmilesStatusCacheFromValidation(spec, _validation);
+            if (obj.id === scene.activeId) refreshSmilesStatus();
+            return false;
+          }
         }
       }
 
@@ -2515,16 +2669,77 @@ export async function interactive_em_image(smiles_text, _unused) {
 
       if (isSmiles) {
         try {
-          var _info = await rdkitGetAtomZs(spec);
+          var _backend = RDKit.build_smiles_backend_result(spec);
+          var _geometry = RDKit.finalize_smiles_geometry(_backend);
+          var _info = _backend && _backend.identity ? _backend.identity : null;
+          var _validationFromBackend = buildValidationFromBackendResult(_backend);
+          var _warningGroups = mergeWarningGroups(
+            _backend && _backend.warningGroups,
+            _geometry && _geometry.warningGroups,
+          );
+          var _warnings = mergeWarningLists(
+            _backend && _backend.warnings,
+            _geometry && _geometry.warnings,
+          );
           obj._smilesAtomZCache = {
             token: spec,
-            Zs: _info && Array.isArray(_info.Zs) ? _info.Zs : null,
-            syms: _info && Array.isArray(_info.syms) ? _info.syms : null,
+            Zs: _info && Array.isArray(_info.Zs) ? _info.Zs.slice(0) : null,
+            syms: _info && Array.isArray(_info.syms) ? _info.syms.slice(0) : null,
+            uiUniqueSymbols:
+              _info && Array.isArray(_info.uiUniqueSymbols)
+                ? _info.uiUniqueSymbols.slice(0)
+                : null,
+            hydrogenMode: _info ? _info.hydrogenMode || "unsupported" : "unsupported",
+            hasHydrogenElement: !!(_info && _info.hasHydrogenElement),
+            validation: _validationFromBackend,
+            geometryMode: _geometry ? _geometry.geometryMode || "failed" : "failed",
+            coordsAvailable: !!(_geometry && _geometry.coordsAvailable),
+            degenerateCoords: !!(_geometry && _geometry.degenerateCoords),
+            usedFallbackCoords: !!(_geometry && _geometry.usedFallbackCoords),
+            warningGroups: _warningGroups,
+            warnings: _warnings,
+            diag: _info
+              ? {
+                  atomCount: _info.atomCount | 0,
+                  hydrogenCount: _info.hydrogenCount | 0,
+                  explicitHydrogenCount: _info.explicitHydrogenCount | 0,
+                  implicitHydrogenCount: _info.implicitHydrogenCount | 0,
+                  uniqueSymbols: Array.isArray(_info.uniqueSymbols)
+                    ? _info.uniqueSymbols.slice(0)
+                    : [],
+                  uiUniqueSymbols: Array.isArray(_info.uiUniqueSymbols)
+                    ? _info.uiUniqueSymbols.slice(0)
+                    : [],
+                  source: _info.source || "fallback",
+                  hydrogenInfoSource: _info.hydrogenInfoSource || "unsupported",
+                  hydrogenMode: _info.hydrogenMode || "unsupported",
+                  explicitHWorked: !!_info.explicitHWorked,
+                  geometryMode: _geometry ? _geometry.geometryMode || "failed" : "failed",
+                  coordsAvailable: !!(_geometry && _geometry.coordsAvailable),
+                }
+              : null,
           };
+          try {
+            if (_backend && _backend.mol && typeof _backend.mol.delete === "function") {
+              _backend.mol.delete();
+            }
+          } catch (e0) {}
+          if (typeof window !== "undefined" && window && window.TEM_DEV === true) {
+            console.log("[SMILES CACHE] validation =", obj._smilesAtomZCache.validation);
+            console.log("[SMILES CACHE] geometryMode =", obj._smilesAtomZCache.geometryMode);
+            console.log("[SMILES CACHE] hydrogenMode =", obj._smilesAtomZCache.hydrogenMode);
+            console.log("[SMILES CACHE] warningGroups =", obj._smilesAtomZCache.warningGroups);
+          }
         } catch (e1) {
-          obj._smilesAtomZCache = { token: spec, Zs: null, syms: null };
+          obj._smilesAtomZCache = makeSmilesStatusCacheFromValidation(spec, {
+            ok: false,
+            reason: "backend_invalid",
+            atomCount: 0,
+            warnings: ["backend_invalid"],
+          });
         }
       }
+      if (obj.id === scene.activeId) refreshSmilesStatus();
       return true;
     } finally {
       if (blobUrl) {
@@ -2677,10 +2892,49 @@ export async function interactive_em_image(smiles_text, _unused) {
     };
   }
 
-  function composeGrayInto(target, src) {
+  function composeGrayInto(target, src, bg, composeMode) {
     if (!target || !src || target.length !== src.length) return;
-    for (var i = 0; i < target.length; i++) {
-      if (src[i] < target[i]) target[i] = src[i];
+    var modeName = String(composeMode || "").trim().toUpperCase();
+    var anchor = Number(bg);
+    if (!Number.isFinite(anchor)) anchor = 127;
+
+    if (modeName === "AFM") {
+      for (var i = 0; i < target.length; i++) {
+        var cur = Number(target[i]);
+        var nxt = Number(src[i]);
+        if (!Number.isFinite(cur)) cur = anchor;
+        if (!Number.isFinite(nxt)) nxt = anchor;
+
+        var curDev = cur - anchor;
+        var nxtDev = nxt - anchor;
+
+        if (Math.abs(nxtDev) > Math.abs(curDev)) {
+          target[i] = nxt;
+        }
+      }
+      return;
+    }
+
+    if (modeName === "STM") {
+      for (var k = 0; k < target.length; k++) {
+        var cur2 = Number(target[k]);
+        var nxt2 = Number(src[k]);
+        if (!Number.isFinite(cur2)) cur2 = anchor;
+        if (!Number.isFinite(nxt2)) nxt2 = anchor;
+
+        // STM frame is built as bright protrusions above background.
+        // During scene composition we must keep the stronger positive excursion,
+        // otherwise the generic TEM-style "take minimum" rule collapses the
+        // whole frame back to black when bg=0.
+        if ((nxt2 - anchor) > (cur2 - anchor)) {
+          target[k] = nxt2;
+        }
+      }
+      return;
+    }
+
+    for (var j = 0; j < target.length; j++) {
+      if (src[j] < target[j]) target[j] = src[j];
     }
   }
 
@@ -2735,6 +2989,11 @@ export async function interactive_em_image(smiles_text, _unused) {
   }
 
   function drawGrayFrameToCanvas(gray, w, h) {
+    if (mode === "STM") {
+      draw_stm_orange_frame_to_canvas(ctx, gray, w, h);
+      return;
+    }
+
     var imageData = ctx.createImageData(w, h);
     for (var i = 0, p = 0; i < gray.length; i++, p += 4) {
       var v = gray[i];
@@ -2913,6 +3172,18 @@ export async function interactive_em_image(smiles_text, _unused) {
       );
       atoms = clipped.atoms;
       bonds = clipped.bonds;
+      if (obj.source && obj.source.kind === 'smiles' && typeof window !== 'undefined' && window && window.TEM_DEV === true) {
+        var finalElemsMap = Object.create(null);
+        var hydrogenCountFinal = 0;
+        for (var te = 0; te < atoms.length; te++) {
+          var es = _normElemSym(atomSymbol(atoms[te]));
+          if (es) finalElemsMap[es] = true;
+          if (es === 'H' || ((atoms[te] && atoms[te].Z) | 0) === 1) hydrogenCountFinal++;
+        }
+        console.log('[SMILES FINAL] final atoms length =', atoms.length);
+        console.log('[SMILES FINAL] unique final elements =', Object.keys(finalElemsMap).sort().join(', '));
+        console.log('[SMILES FINAL] H atoms in final atoms =', hydrogenCountFinal);
+      }
       if (!atoms || !atoms.length) continue;
       for (var ai = 0; ai < atoms.length; ai++) allAtoms.push(atoms[ai]);
       var usedCamera = cloneUsedCamera(
@@ -2924,7 +3195,7 @@ export async function interactive_em_image(smiles_text, _unused) {
       var opts = makePerObjectRenderOpts(w, h, atoms, bonds, usedCamera);
       var frame = render_image(atoms, opts);
       if (frame && frame.length === globalGray.length)
-        composeGrayInto(globalGray, frame);
+        composeGrayInto(globalGray, frame, bg, mode);
     }
     return { gray: globalGray, allAtoms: allAtoms };
   }
@@ -2958,6 +3229,7 @@ export async function interactive_em_image(smiles_text, _unused) {
           ? providerMeta.title
           : kind || "";
     setTitle(uiTitle);
+    refreshSmilesStatus();
     return true;
   }
 
@@ -2978,7 +3250,9 @@ export async function interactive_em_image(smiles_text, _unused) {
     }
 
     try {
-      var elems = gatherElementsFromAtoms(sceneFrame.allAtoms);
+      var elems = mergeUiElementsFromSmilesCaches(
+        gatherElementsFromAtoms(sceneFrame.allAtoms),
+      );
       var key = elems.join("|");
       if (key !== _elemListKey) {
         _elemListKey = key;
@@ -3021,27 +3295,37 @@ export async function interactive_em_image(smiles_text, _unused) {
       rebuildQueued = true;
       if (!rebuildQueuedCfg) rebuildQueuedCfg = {};
       if (cfg && cfg.explicit) rebuildQueuedCfg.explicit = true;
+      if (cfg && cfg.retryOnFail) rebuildQueuedCfg.retryOnFail = true;
       return;
     }
 
     rebuildPending = true;
     var ok = true;
+    var failed = false;
     try {
       ok = await buildCurrentSystem(cfg);
     } catch (e) {
-      // Keep UI responsive even on parse errors.
-      // (Minimal error handling; no debug spam.)
-      provider = null;
-      providerMeta = null;
-      setTitle("ERROR");
-      ok = true;
+      // Preserve the last good provider/image on transient build failures.
+      // Do NOT clear provider/providerMeta here, otherwise one early failing build
+      // can blank the canvas before the next queued successful rebuild arrives.
+      failed = true;
+      ok = false;
+      try {
+        console.warn("[SMILES BUILD] transient rebuild failure kept previous frame", e);
+      } catch (e2) {}
     } finally {
       rebuildPending = false;
     }
 
-    // For invalid SMILES, keep the last good image (don't rerender / don't refresh noise).
+    // For invalid SMILES or transient failures, keep the last good image
+    // instead of rerendering an empty frame.
     if (ok !== false) {
       await renderCurrent();
+    } else if (failed && cfg && cfg.retryOnFail) {
+      rebuildQueued = true;
+      if (!rebuildQueuedCfg) rebuildQueuedCfg = {};
+      rebuildQueuedCfg.retryOnFail = false;
+      if (cfg && cfg.explicit) rebuildQueuedCfg.explicit = true;
     }
 
     if (rebuildQueued) {
@@ -3075,7 +3359,7 @@ export async function interactive_em_image(smiles_text, _unused) {
   ].forEach(function (x) {
     if (!x) return;
     x.oninput = function () {
-      if (x === rngBg) getBackgroundGray();
+      if (x === rngBg) setBackgroundGrayValue(rngBg ? rngBg.value : 0, true);
       scheduleRender();
     };
   });
@@ -3516,6 +3800,7 @@ export async function interactive_em_image(smiles_text, _unused) {
       updateBondsLabelText();
       renderSceneList();
       updateActiveEditsUi();
+      refreshSmilesStatus();
       try {
         rebuildElementOverridesTable(_elemList || []);
       } catch (e) {}
@@ -3569,9 +3854,10 @@ export async function interactive_em_image(smiles_text, _unused) {
   updateGifUI();
   renderSceneList();
   updateActiveEditsUi();
+  refreshSmilesStatus();
 
   if (tbSmiles && trimStr(tbSmiles.value)) {
-    await addSmilesObjectFromInput({ explicit: false });
+    await addSmilesObjectFromInput({ explicit: false, retryOnFail: true });
   } else {
     scheduleRender();
   }
