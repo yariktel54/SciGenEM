@@ -5,19 +5,19 @@
 //  - STM must stay surface-sensitive (not volume / x-ray-like)
 //  - apparent contrast should follow the top accessible electronic envelope,
 //    not a sum through the full thickness
-//  - atoms should appear as localized protrusions / lobes on the surface,
-//    not as literal TEM projected columns
+//  - atoms should appear as localized bright protrusions / lobes on the surface,
+//    not as literal TEM projected columns or dark pits
 //  - bonds are NOT drawn in STM mode
 //  - DoF is ignored in STM mode; hide_front/focal_z may still act as an educational slice
 
-import { get_covalent_radius } from '../bonds/bonds.js';
 import {
     compute_scaled_coordinates,
     newFloatImage,
     gaussianBlurFloat,
     clamp255,
     getGaussian1D_cached,
-    draw_scale_bar
+    draw_scale_bar,
+    draw_stm_orange_frame_to_canvas
 } from './render_common.js';
 
 // ---------------------------
@@ -276,24 +276,38 @@ function _EO_getMul(ov, sym) {
 
 function estimateStmGeom(atom, scale, ov, opts) {
     const Z = Math.max(1, atom?.Z | 0);
-    const rA = get_covalent_radius(Z);
     const sym = _EO_atomSymbol(atom);
     const [sizeMul, darkMul] = _EO_getMul(ov, sym);
 
-    const sigmaMul = (opts.stm_sigma_mul != null) ? Number(opts.stm_sigma_mul) : 0.95;
-    const sigmaExp = (opts.stm_sigma_exp != null) ? Number(opts.stm_sigma_exp) : 1.10;
-    const typicalBondA = opts.typical_bond_A ?? 1.40;
-    const capRelBond = opts.stm_sigma_cap_rel_bond ?? 0.50;
-    const capAbsPx = opts.stm_sigma_cap_abs_px ?? 20.0;
+    // STM apparent lateral extent is primarily tip / vacuum / electronic-envelope limited,
+    // not a universal monotonic function of atomic number.
+    // We therefore use a global tip-limited envelope width and keep element overrides manual only.
+    const tipRadiusA = Math.max(0.20, Number(opts.stm_tip_radius_A ?? 3.0));
+    const gapA = Math.max(0.20, Number(opts.stm_gap_A ?? 3.5));
+    const decayLenA = Math.max(0.20, Number(opts.stm_decay_length_A ?? 1.0));
+    const sigmaFromResolution = Math.max(0.05, Number(opts.stm_sigma_from_resolution ?? 0.22));
+    const sizeOverrideStrength = Math.max(0.0, Number(opts.stm_size_override_strength ?? 1.0));
+    const typicalBondA = Math.max(0.25, Number(opts.typical_bond_A ?? 1.40));
+    const capRelBond = Math.max(0.20, Number(opts.stm_sigma_cap_rel_bond ?? 0.85));
+    const capAbsPx = Math.max(1.0, Number(opts.stm_sigma_cap_abs_px ?? 28.0));
 
-    let sigma = Math.max(1e-6, Math.pow(Math.max(1e-6, rA), sigmaExp) * scale * sigmaMul);
-    sigma *= sizeMul;
+    // Tersoff-Hamann lateral resolution scale ~ sqrt[(2 A) * (R + d)].
+    // Here we compress that scale into a Gaussian sigma for a compact educational blob model.
+    const tipLimitedResolutionA = Math.sqrt(Math.max(1e-6, 2.0 * decayLenA * (tipRadiusA + gapA)));
+    let sigmaA = Number(opts.stm_sigma_A);
+    if (!(sigmaA > 0)) sigmaA = tipLimitedResolutionA * sigmaFromResolution;
+
+    let sigma = Math.max(1e-6, sigmaA * scale);
+
+    // Keep explicit per-element size tweaks available only as manual artistic overrides.
+    const manualSizeMul = 1.0 + (sizeMul - 1.0) * sizeOverrideStrength;
+    sigma *= manualSizeMul;
     if (sigma < 0.45) sigma = 0.45;
 
-    const capPx = Math.min(capAbsPx, Math.max(1.0, capRelBond * typicalBondA * scale));
+    const capPx = Math.min(capAbsPx, Math.max(1.20, capRelBond * typicalBondA * scale));
     if (sigma > capPx) sigma = capPx;
 
-    return { sigma, sizeMul, darkMul, rA, Z };
+    return { sigma, sizeMul, darkMul, tipLimitedResolutionA, sigmaA, Z };
 }
 
 function buildSurfaceSubset(atoms, coords, z_view, scale, ov, opts, H, W) {
@@ -350,7 +364,6 @@ function buildSurfaceSubset(atoms, coords, z_view, scale, ov, opts, H, W) {
             sizeMul: geom.sizeMul,
             darkMul: geom.darkMul,
             Z: geom.Z,
-            rA: geom.rA,
             surfaceRadiusPx,
             localTopZ: zAtom,
             surfaceGapA: Infinity,
@@ -491,15 +504,7 @@ export function render_stm_like(atoms, opts = {}) {
         const out0 = new Uint8ClampedArray(H * W);
         out0.fill(clamp255(background_gray));
         if (canvasCtx) {
-            const imageData = canvasCtx.createImageData(W, H);
-            for (let i = 0, p = 0; i < out0.length; i++, p += 4) {
-                const v = out0[i];
-                imageData.data[p] = v;
-                imageData.data[p + 1] = v;
-                imageData.data[p + 2] = v;
-                imageData.data[p + 3] = 255;
-            }
-            canvasCtx.putImageData(imageData, 0, 0);
+            draw_stm_orange_frame_to_canvas(canvasCtx, out0, W, H);
             if (show_scale_bar) {
                 draw_scale_bar(canvasCtx, { h: H, w: W }, angstroms_per_pixel, {
                     corner: scale_bar_corner,
@@ -592,18 +597,30 @@ export function render_stm_like(atoms, opts = {}) {
         applyScanlineArtifacts(sigA, H, W, opts);
     }
 
-    const stm_signal_strength = (opts.stm_signal_strength != null) ? Number(opts.stm_signal_strength) : 212.0;
+    // Constant-current STM topography is closer to a logarithmic apparent-height map
+    // than to a darkened absorption image. Convert the surface signal into a bright
+    // protrusion field with gentle logarithmic compression.
+    const stm_topo_log_gain = (opts.stm_topo_log_gain != null) ? Number(opts.stm_topo_log_gain) : 5.5;
+    const topoField = new Float32Array(sigA.length);
+    const topoNorm = Math.log1p(Math.max(1e-6, stm_topo_log_gain));
+    for (let p = 0; p < sigA.length; p++) {
+        const v = Math.max(0.0, sigA[p]);
+        topoField[p] = Math.log1p(stm_topo_log_gain * v) / topoNorm;
+    }
+    normalizeField(topoField);
+
+    const stm_signal_strength = (opts.stm_signal_strength != null) ? Number(opts.stm_signal_strength) : 228.0;
     const img = newFloatImage(H, W, background_gray);
     for (let p = 0; p < img.a.length; p++) {
-        img.a[p] = background_gray - (stm_signal_strength * sigA[p]);
+        img.a[p] = background_gray + (stm_signal_strength * topoField[p]);
     }
 
     if (hasDarkOverride) {
+        const stm_dark_override_strength = (opts.stm_dark_override_strength != null) ? Number(opts.stm_dark_override_strength) : 0.18;
         for (let p = 0; p < img.a.length; p++) {
-            let localDark = 1.0 + 0.20 * darkField[p];
-            if (localDark < 0.05) localDark = 0.05;
-            const d = background_gray - img.a[p];
-            img.a[p] = background_gray - d * localDark;
+            let localMul = 1.0 - stm_dark_override_strength * darkField[p];
+            if (localMul < 0.20) localMul = 0.20;
+            img.a[p] = background_gray + (img.a[p] - background_gray) * localMul;
         }
     }
 
@@ -642,15 +659,7 @@ export function render_stm_like(atoms, opts = {}) {
     for (let i = 0; i < out.length; i++) out[i] = clamp255(img.a[i]);
 
     if (canvasCtx) {
-        const imageData = canvasCtx.createImageData(W, H);
-        for (let i = 0, p = 0; i < out.length; i++, p += 4) {
-            const v = out[i];
-            imageData.data[p] = v;
-            imageData.data[p + 1] = v;
-            imageData.data[p + 2] = v;
-            imageData.data[p + 3] = 255;
-        }
-        canvasCtx.putImageData(imageData, 0, 0);
+        draw_stm_orange_frame_to_canvas(canvasCtx, out, W, H);
 
         if (show_scale_bar) {
             draw_scale_bar(canvasCtx, { h: H, w: W }, angstroms_per_pixel, {

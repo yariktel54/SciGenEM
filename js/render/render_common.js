@@ -190,6 +190,49 @@ export function newFloatImage(h, w, bg = 127) {
 function idx(img, x, y) { return y * img.w + x; }
 export function clamp255(v) { return v < 0 ? 0 : v > 255 ? 255 : v; }
 
+function _stmSmoothstep(edge0, edge1, x) {
+    if (!(edge1 > edge0)) return x >= edge1 ? 1 : 0;
+    let t = (x - edge0) / (edge1 - edge0);
+    if (t < 0) t = 0;
+    else if (t > 1) t = 1;
+    return t * t * (3 - 2 * t);
+}
+
+export function stm_orange_map_rgb(grayValue) {
+    let t = clamp255(Number(grayValue)) / 255.0;
+    t = Math.pow(t, 0.92);
+
+    const orange = [255, 136, 28];
+    const white = [255, 247, 236];
+
+    const mid = _stmSmoothstep(0.06, 0.72, t);
+    const hi = _stmSmoothstep(0.62, 1.00, t);
+
+    let r = orange[0] * mid;
+    let g = orange[1] * mid;
+    let b = orange[2] * mid;
+
+    r += (white[0] - r) * hi;
+    g += (white[1] - g) * hi;
+    b += (white[2] - b) * hi;
+
+    return [clamp255(r) | 0, clamp255(g) | 0, clamp255(b) | 0];
+}
+
+export function draw_stm_orange_frame_to_canvas(canvasCtx, gray, w, h) {
+    if (!canvasCtx) return;
+    const imageData = canvasCtx.createImageData(w, h);
+    const data = imageData.data;
+    for (let i = 0, p = 0; i < gray.length; i++, p += 4) {
+        const rgb = stm_orange_map_rgb(gray[i]);
+        data[p] = rgb[0];
+        data[p + 1] = rgb[1];
+        data[p + 2] = rgb[2];
+        data[p + 3] = 255;
+    }
+    canvasCtx.putImageData(imageData, 0, 0);
+}
+
 export function gaussianBlurFloat(img, sigma, scratch = null) {
     if (sigma <= 0) return img;
     const { h, w, a } = img;
