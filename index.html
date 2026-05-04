@@ -387,6 +387,28 @@
         font-weight: 600;
       }
 
+      .smiles_status_panel {
+        margin-top: 8px;
+        padding: 10px 12px;
+        border: 1px solid #e2e2e2;
+        border-radius: 8px;
+        background: #fafafa;
+      }
+
+      .smiles_status_title {
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+
+      .smiles_status_line {
+        font-size: 13px;
+        color: #444;
+      }
+
+      .smiles_status_line + .smiles_status_line {
+        margin-top: 4px;
+      }
+
       .tiles_grid {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
@@ -1049,6 +1071,36 @@
                   class="error"
                   style="display: none"
                 ></div>
+                <div id="smiles-status" class="smiles_status_panel ui_hidden">
+                  <div
+                    id="smiles-status-title"
+                    class="smiles_status_title"
+                  ></div>
+                  <div
+                    id="smiles-status-validation"
+                    class="smiles_status_line ui_hidden"
+                  ></div>
+                  <div
+                    id="smiles-status-geometry"
+                    class="smiles_status_line ui_hidden"
+                  ></div>
+                  <div
+                    id="smiles-status-hydrogen"
+                    class="smiles_status_line ui_hidden"
+                  ></div>
+                  <div
+                    id="smiles-status-input-warnings"
+                    class="smiles_status_line ui_hidden"
+                  ></div>
+                  <div
+                    id="smiles-status-backend-warnings"
+                    class="smiles_status_line ui_hidden"
+                  ></div>
+                  <div
+                    id="smiles-status-geometry-warnings"
+                    class="smiles_status_line ui_hidden"
+                  ></div>
+                </div>
               </div>
 
               <div class="tem_full">
@@ -1378,7 +1430,7 @@
                   ><input type="checkbox" id="cb-noise" />
                   <span id="lblNoise">Шум</span></label
                 >
-                <label
+                <label id="row-bonds"
                   ><input type="checkbox" id="cb-bonds" checked />
                   <span id="lblBonds">Зв'язки</span></label
                 >
@@ -1401,9 +1453,9 @@
                 <input
                   type="range"
                   id="rng-zoom"
-                  min="0.01"
+                  min="0.05"
                   max="0.5"
-                  step="0.005"
+                  step="0.05"
                   value="0.1"
                 />
               </div>
@@ -1425,10 +1477,10 @@
                 <input
                   type="range"
                   id="rng-blur"
-                  min="0.01"
+                  min="2"
                   max="10.0"
                   step="0.01"
-                  value="1.0"
+                  value="4.0"
                 />
               </div>
 
@@ -1444,7 +1496,7 @@
                 />
               </div>
 
-              <div class="tem_full range_row">
+              <div class="tem_full range_row" id="row-focus">
                 <label id="lblFocus" for="rng-focus">Фокус Z (норм.)</label>
                 <input
                   type="range"
@@ -1456,7 +1508,7 @@
                 />
               </div>
 
-              <div class="tem_full range_row">
+              <div class="tem_full range_row" id="row-dof">
                 <label id="lblDof" for="rng-dof">Розфокус (Å⁻¹)</label>
                 <input
                   type="range"
@@ -1492,7 +1544,7 @@
                 <span id="ui.elemOverrides.title">Додаткові налаштування</span>
               </summary>
               <div style="margin-top: 10px">
-                <div class="tem_full range_row">
+                <div class="tem_full range_row" id="row-bg">
                   <label for="rng-bg"
                     ><span id="lblBg">Фон (0–255):</span>
                     <span class="muted" id="lbl-bg">127</span></label
@@ -1514,9 +1566,9 @@
                   <input
                     type="range"
                     id="rng-bwidth"
-                    min="2"
-                    max="24"
-                    step="1"
+                    min="0.1"
+                    max="4"
+                    step="0.05"
                     value="6"
                   />
                 </div>
@@ -1527,9 +1579,9 @@
                     type="range"
                     id="rng-bamp"
                     min="0.2"
-                    max="5.0"
+                    max="10.0"
                     step="0.05"
-                    value="0.4"
+                    value="7.0"
                   />
                 </div>
 

@@ -1,34 +1,63 @@
 // js/builders/build_smiles.js
 // SMILES system builder (RDKit only) used by phases.js.
 
-import { create_molecule_from_smiles, get_atoms_with_coords } from '../io/smiles_io.js';
+import {
+  create_molecule_from_smiles,
+  get_atoms_with_coords,
+} from "../io/smiles_io.js";
+
+const STRICT_SMILES_CHEMISTRY = true;
 
 export async function build_from_smiles(spec) {
-  let sm = (spec.smiles || '').trim();
-  if (!sm) sm = 'O';
+  const rawSmiles = String((spec && spec.smiles) || "");
+  const inputSmiles = rawSmiles.trim();
+  const buildSmiles = inputSmiles || "O";
 
   let mol;
   try {
-    mol = await create_molecule_from_smiles(sm);
+    mol = await create_molecule_from_smiles(buildSmiles, {
+      strictChemistry: STRICT_SMILES_CHEMISTRY,
+    });
   } catch (e) {
-    sm = 'O';
-    mol = await create_molecule_from_smiles(sm);
-    try {
-      if (!Array.isArray(mol.__tem_warnings)) mol.__tem_warnings = [];
-      mol.__tem_warnings.push('SMILES input failed; fallback to O');
-    } catch (_) {}
+    const err = new Error(
+      `SMILES build failed: ${inputSmiles || "<empty input>"}`,
+    );
+    err.cause = e;
+    err.rejectReasons = Array.isArray(e && e.rejectReasons)
+      ? e.rejectReasons.slice(0)
+      : [];
+    err.trust = e && e.trust ? e.trust : null;
+    throw err;
   }
 
-  // Bonds come strictly from RDKit here.
-  const pair = get_atoms_with_coords(mol);
+  const pair = get_atoms_with_coords(mol, {
+    strictChemistry: STRICT_SMILES_CHEMISTRY,
+  });
   const atoms = pair[0];
   const bonds = pair[1];
 
-    const out = [atoms, bonds, `SMILES: ${sm}`];
-  // Pass through any non-fatal warnings collected during SMILES parsing / coord generation.
+  let titleSmiles = buildSmiles;
+  try {
+    const used = mol?.__tem_smiles_backend?.smiles;
+    if (typeof used === "string" && used.trim()) titleSmiles = used.trim();
+  } catch (_) {}
+
+  const out = [atoms, bonds, `SMILES: ${titleSmiles || "O"}`];
   try {
     const w = mol?.__tem_warnings;
-    if (Array.isArray(w) && w.length) out.meta = { warnings: w.slice(0, 8) };
+    const trust = mol?.__tem_smiles_trust;
+    const meta = {};
+    if (Array.isArray(w) && w.length) meta.warnings = w.slice(0, 16);
+    if (trust && typeof trust === "object") {
+      meta.trust = {
+        strictOk: !!trust.strictOk,
+        trustLevel: trust.trustLevel || "rejected",
+        rejectReasons: Array.isArray(trust.rejectReasons)
+          ? trust.rejectReasons.slice(0, 16)
+          : [],
+      };
+    }
+    if (Object.keys(meta).length) out.meta = meta;
   } catch (_) {}
   return out;
 }
